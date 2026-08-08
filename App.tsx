@@ -564,6 +564,13 @@ function waLink(whatsapp, text) {
 
 function firstOrSelf(v) { return Array.isArray(v) ? v[0] : v; }
 
+function parseUploadTimestamp(path) {
+  // caminho no formato "{uid}/{timestamp}_{nomeArquivo}"
+  const filename = (path || "").split("/")[1] || "";
+  const ts = Number(filename.split("_")[0]);
+  return Number.isFinite(ts) ? new Date(ts) : null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
@@ -860,6 +867,7 @@ export default function CAFCTApp() {
   const [showAssinaturaModal, setShowAssinaturaModal] = useState(false);
   const [editingAssinatura, setEditingAssinatura] = useState(null);
   const [assinaturaForm, setAssinaturaForm] = useState({ valor_mensalidade: "", dia_vencimento: "" });
+  const [limpezaLoading, setLimpezaLoading] = useState(false);
 
   useEffect(() => {
     if (escola) {
@@ -1165,6 +1173,31 @@ export default function CAFCTApp() {
       setAdminsByEscola(map);
       setAssinaturas(assinaturasRows.map((a) => ({ ...a, escolas: firstOrSelf(a.escolas) })).sort((a, b) => (a.escolas?.nome || "").localeCompare(b.escolas?.nome || "")));
     } finally { setDataLoading(false); }
+  }
+
+  async function handleLimparComprovantesAntigos() {
+    setLimpezaLoading(true);
+    try {
+      const rows = await sbFetch("/rest/v1/matriculas?select=id,comprovante_path&comprovante_path=not.is.null", { token: session.access_token });
+      const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+      const antigos = rows.filter((r) => {
+        const d = parseUploadTimestamp(r.comprovante_path);
+        return d && d.getTime() < cutoff;
+      });
+      if (antigos.length === 0) { showToast("Nenhum comprovante com mais de 3 meses.", "info"); return; }
+
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/comprovantes`, {
+        method: "DELETE",
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ prefixes: antigos.map((r) => r.comprovante_path) }),
+      });
+      if (!res.ok) throw new Error("Falha ao apagar os arquivos.");
+
+      const ids = antigos.map((r) => r.id).join(",");
+      await sbFetch(`/rest/v1/matriculas?id=in.(${ids})`, { method: "PATCH", token: session.access_token, body: { comprovante_path: null } });
+
+      showToast(`${antigos.length} comprovante(s) com mais de 3 meses foram removidos.`, "success");
+    } catch (e) { showToast(e.message, "error"); } finally { setLimpezaLoading(false); }
   }
 
   async function handleMarkAssinaturaStatus(escolaId, status) {
@@ -2052,6 +2085,21 @@ export default function CAFCTApp() {
                       </div>
                     ))}
                   </div>
+                </section>
+
+                <SectionDivider />
+
+                <section>
+                  <h2 className="font-display text-xl tracking-wide mb-1 flex items-center gap-2"><Trash2 size={18} style={{ color: C.textMuted }} /> Manutenção do Armazenamento</h2>
+                  <p className="text-sm mb-5" style={{ color: C.textDim }}>Comprovantes de pagamento enviados há mais de 3 meses podem ser apagados pra liberar espaço. O histórico financeiro (valores e datas) não é afetado — só o arquivo da imagem.</p>
+                  <button
+                    onClick={handleLimparComprovantesAntigos}
+                    disabled={limpezaLoading}
+                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors hover:brightness-110"
+                    style={{ background: C.red, color: "#fff", opacity: limpezaLoading ? 0.7 : 1 }}
+                  >
+                    <Trash2 size={16} /> {limpezaLoading ? "Limpando..." : "Limpar comprovantes com mais de 3 meses"}
+                  </button>
                 </section>
 
                 <SectionDivider />
