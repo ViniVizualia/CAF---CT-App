@@ -1333,7 +1333,7 @@ export default function CAFCTApp() {
       {view === "aluno" && !session && (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-sm">
-            <div className="flex justify-center mb-6"><LogoPlaceholder size={56} /></div>
+            <div className="flex justify-center mb-6"><LogoPlaceholder size={100} /></div>
             <h1 className="font-display text-2xl tracking-wide text-center mb-1">Área do Aluno</h1>
             <p className="text-sm text-center mb-6" style={{ color: C.textDim }}>{authMode === "login" ? "Entre com sua conta." : "Crie sua conta e escolha suas escolas."}</p>
 
@@ -1664,7 +1664,7 @@ export default function CAFCTApp() {
       {view === "admin" && !role && (
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-sm text-center">
-            <div className="flex justify-center mb-6"><LogoPlaceholder size={56} /></div>
+            <div className="flex justify-center mb-6"><LogoPlaceholder size={100} /></div>
             <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${C.blue}22` }}><ShieldCheck size={20} style={{ color: C.blue }} /></div>
             <h1 className="font-display text-2xl tracking-wide mb-2">Área Administrativa</h1>
             <p className="text-sm mb-6" style={{ color: C.textDim }}>Entre com uma conta de administrador.</p>
