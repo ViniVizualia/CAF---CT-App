@@ -3,7 +3,7 @@ import {
   Users, ShieldCheck, ArrowLeft, LogOut, LogIn, Search, Filter, Phone,
   Calendar, Copy, Check, MessageCircle, Trash2, X, TrendingUp, Wallet,
   AlertTriangle, CheckCircle2, Clock, ChevronRight, Zap, DollarSign,
-  UserPlus, Send, Waves, PieChart, Pencil, Settings, Building2, ExternalLink
+  UserPlus, Send, Waves, PieChart, Pencil, Settings, Building2, ExternalLink, Eye
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -804,7 +804,7 @@ export default function CAFCTApp() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null); // 'admin' | 'super_admin' | null
   const [authMode, setAuthMode] = useState("login");
-  const [authForm, setAuthForm] = useState({ email: "", password: "", nome: "", telefone: "" });
+  const [authForm, setAuthForm] = useState({ email: "", password: "", confirmPassword: "", nome: "", telefone: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -842,6 +842,8 @@ export default function CAFCTApp() {
   const [editingPlan, setEditingPlan] = useState(null);
   const [planForm, setPlanForm] = useState({ nome: "", categoria: "Coletiva", frequencia: "", preco: "" });
   const [confirmDeletePlanId, setConfirmDeletePlanId] = useState(null);
+  const [comprovanteViewUrl, setComprovanteViewUrl] = useState(null);
+  const [comprovanteLoading, setComprovanteLoading] = useState(false);
 
   function getPlan(id) { return plans.find((p) => p.id === id) || { nome: "—", categoria: "Coletiva", frequencia: "", preco: 0 }; }
 
@@ -870,7 +872,7 @@ export default function CAFCTApp() {
     }
   }, [escola]);
 
-  function resetAuthForm() { setAuthForm({ email: "", password: "", nome: "", telefone: "" }); setAuthError(""); }
+  function resetAuthForm() { setAuthForm({ email: "", password: "", confirmPassword: "", nome: "", telefone: "" }); setAuthError(""); }
   function goLanding() { setView("landing"); }
 
   function handleLogout() {
@@ -919,6 +921,7 @@ export default function CAFCTApp() {
     try {
       if (!authForm.nome.trim()) throw new Error("Informe seu nome.");
       if (!authForm.telefone.trim()) throw new Error("Informe seu telefone.");
+      if (authForm.password !== authForm.confirmPassword) throw new Error("As senhas não coincidem.");
       const data = await sbFetch("/auth/v1/signup", {
         method: "POST",
         body: { email: authForm.email, password: authForm.password, data: { nome: authForm.nome.trim(), telefone: authForm.telefone.trim() } },
@@ -968,9 +971,9 @@ export default function CAFCTApp() {
   async function handleSendReceiptFile(matriculaId, file) {
     if (!file) return;
     try {
-      await uploadReceipt(session.access_token, session.user.id, file);
-      await rpcCall("enviar_comprovante", session.access_token, { p_matricula_id: matriculaId });
-      setMinhasMatriculas((prev) => prev.map((m) => (m.id === matriculaId ? { ...m, comprovante_pendente: true } : m)));
+      const path = await uploadReceipt(session.access_token, session.user.id, file);
+      await rpcCall("enviar_comprovante", session.access_token, { p_matricula_id: matriculaId, p_path: path });
+      setMinhasMatriculas((prev) => prev.map((m) => (m.id === matriculaId ? { ...m, comprovante_pendente: true, comprovante_path: path } : m)));
       showToast("Comprovante enviado! Aguardando revisão do admin.", "success");
     } catch (e) { showToast(e.message, "error"); }
   }
@@ -1046,6 +1049,24 @@ export default function CAFCTApp() {
       setAllAlunos((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
       showToast(status === "em_dia" ? "Pagamento confirmado!" : "Status atualizado para pendente.", status === "em_dia" ? "success" : "info");
     } catch (e) { showToast(e.message, "error"); }
+  }
+
+  async function handleViewComprovante(path) {
+    if (!path) return;
+    setComprovanteLoading(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/comprovantes/${path}`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res.ok) throw new Error("Não foi possível carregar o comprovante.");
+      const blob = await res.blob();
+      setComprovanteViewUrl(URL.createObjectURL(blob));
+    } catch (e) { showToast(e.message, "error"); } finally { setComprovanteLoading(false); }
+  }
+
+  function closeComprovanteView() {
+    if (comprovanteViewUrl) URL.revokeObjectURL(comprovanteViewUrl);
+    setComprovanteViewUrl(null);
   }
 
   async function handleApproveReceipt(id) {
@@ -1327,6 +1348,9 @@ export default function CAFCTApp() {
             </>)}
             <AuthInput type="email" placeholder="E-mail" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} />
             <AuthInput type="password" placeholder="Senha" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} />
+            {authMode === "signup" && (
+              <AuthInput type="password" placeholder="Confirmar senha" value={authForm.confirmPassword} onChange={(e) => setAuthForm({ ...authForm, confirmPassword: e.target.value })} />
+            )}
 
             {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
 
@@ -1859,6 +1883,9 @@ export default function CAFCTApp() {
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1.5">
+                                {s.comprovante_path && (
+                                  <button title="Ver comprovante" onClick={() => handleViewComprovante(s.comprovante_path)} className="p-1.5 rounded-lg transition-colors hover:bg-white/5" style={{ color: C.blue }}><Eye size={16} /></button>
+                                )}
                                 {s.comprovante_pendente ? (
                                   <>
                                     <button title="Aprovar pagamento" onClick={() => handleApproveReceipt(s.id)} className="p-1.5 rounded-lg transition-colors hover:bg-white/5" style={{ color: C.green }}><CheckCircle2 size={16} /></button>
@@ -1899,6 +1926,9 @@ export default function CAFCTApp() {
                           </div>
                         )}
                         {s.comprovante_pendente && (<div className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full mb-3" style={{ color: C.amber, background: `${C.amber}22` }}><Send size={10} /> Aguardando revisão do comprovante</div>)}
+                        {s.comprovante_path && (
+                          <button onClick={() => handleViewComprovante(s.comprovante_path)} className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg mb-2" style={{ background: `${C.blue}22`, color: C.blue }}><Eye size={14} /> Ver comprovante</button>
+                        )}
                         <div className="flex items-center gap-2">
                           {s.comprovante_pendente ? (
                             <>
@@ -2119,6 +2149,12 @@ export default function CAFCTApp() {
             <FormInput label="Dia de vencimento" type="number" min={1} max={28} value={assinaturaForm.dia_vencimento} onChange={(e) => setAssinaturaForm({ ...assinaturaForm, dia_vencimento: e.target.value })} placeholder="Ex: 10" />
             <button onClick={handleSaveAssinatura} className="w-full py-3 rounded-lg font-semibold text-sm transition-colors hover:brightness-110" style={{ background: C.blue, color: "#fff" }}>Salvar</button>
           </div>
+        </Modal>
+      )}
+
+      {comprovanteViewUrl && (
+        <Modal title="Comprovante de pagamento" onClose={closeComprovanteView}>
+          <img src={comprovanteViewUrl} alt="Comprovante de pagamento" className="w-full rounded-lg" />
         </Modal>
       )}
 
