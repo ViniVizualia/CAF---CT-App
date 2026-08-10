@@ -846,6 +846,158 @@ const LOGO_DATA_URL =
   "3ju9zBGgEDPMdPX5XgFmwsaN/uylnF2zazbD+mFeZ+56tWcLvdk1u2bX7Jpds2t2za7ZNbtm1+yaXbNrds2u2TW7Ztfsml2za3bN" +
   "rtn1g1z/PwdpehW1diYOAAAAAElFTkSuQmCC";
 
+const CAF_SELO_DATA_URL =
+  "data:image/png;base64," +
+  "iVBORw0KGgoAAAANSUhEUgAAAIoAAADICAYAAAA3F3kDAAAq+ElEQVR42u29eZweVZn3/b3OOVX30ntnJ+wgQgIBDMjikkRFEcU9" +
+  "ccMFRXREUR+dGWfG1yTjqLiM+wKMIPMMiiTgO+M4Pm48EGBkUYY9AgECIfvS6eXue6mqc673j6ruJIjLfOb9mEDq+/lU7vR2d1ed" +
+  "X13buc4pKCkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp" +
+  "KSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkp2Q+Q8vz/IFpK5JkvFGEpwuriHOcgsADmTlfu" +
+  "X6ksQzHo75WCAAFhGcLc4j3uL17notxP/h6yfwhKnjHnsRjDHGRyEJcT/sTzrzALAzAL2LQJnQN+NSQT3/BHVbAUs7gQ08o//XeX" +
+  "QvmzCmMZHnnKsazxur5Z1KLZVM0hWJmNlZlU7QyJ7aCifRhblYgujERIbh3UqIpRj9UGSmaNNjBhOBJ2Wg07qo4NxvC4EDZGabph" +
+  "xoNDW++4lLS0KPsKSzHcgOGGpxDGqQy6I6YflVk9kdgdS2TnSGQO1djMILY1IgEnIAYsxSHgio8dIJofKBIUQTE+YFCMCVivOBNS" +
+  "5zR1opm12oiCDldt2GZFNxlhdZ/V+3VrWDd/mj70ugOHmgALFxJYBhNuSp6mbkqeFuK4kWyPy3tyfSZH1p9D1T1fInu6OjuHip1G" +
+  "1YAphiL//oARcGJwgAGCQhKQEIYxupGgG3A8qj48bmCDhGyLafmNJtNmZfO2nZUbSLZtwwPtp/BClg8d0sNU6WO6cxWfaGcdcNHj" +
+  "awvV/W50rJjiuk94NQVUZN8WkOyTf9MC7O9YjlcPHEdvdAaRfTmRmU8tGiA2IAJZgECKIWDE4cQS5UMg7czjWaeE1ajeRSe7i53p" +
+  "fVy141GKOGTiQnTNZ2oyr3u6767M0Ko9wNTttKiuMyouuJ6a9tUdvV2R2r6Kl5r1dBvVwar6gciPDcZhe0UzPyWyrf44Gzk4ZnRK" +
+  "Frb1drPFBLZ3Ukb7T2BU5PfHL6pYVoIswe/2OWElhsXoH/rZ/UcoSzGsRli56yJxxsCxZiB6TajZV1NxJ1JzNs9GFIKmIB6DwUlM" +
+  "JPlVbWYpGh7U1N9C299caSQ3d3448uhuvylm8cCzmVI5Qar2BCI7lyoHIzKDWPq0YiwVg60o1kE1DnRHgV7n6YkC/VFgMM7odYFe" +
+  "p/RHgV4XGIwCvTYw1SlTIs80CfRoIHiwRhsi0sCwDc9GG+ljPjMPW8KaRHk09jwuRzG6hzhuwLIQFdl1Pdb96sDaZT9b31m+F4Ll" +
+  "fc+izK/PMgd3vVa7ojdqxT6Pis3FkamC5lZDxBEZhxNIA3T8E+LDf2orva6ytXNd5xcjayff7yUDB5uZ0Qu0x72Q2DyHyBypFdtP" +
+  "zUJUuCqK+EQBUY9VdUY1cqr1aEIgnp440BsXonCBPhfoc1q8BgZtYNApU+NAr1WpmYATNUaw1gJWi3ioODyQEIJIgyDbUVZrhx/a" +
+  "Y8IVE7GMru6Z0qHzwmRcZmTt6L67s/m3Lly4yv+5XZXsK+7PnTH4XO2P3xtq9mytu6mFOEDJcqMsghNHZCD1kGSPSsf/3IwlP/a/" +
+  "2nkDWxgv3s+xZODFVKOzqMUvoGbn0mVjKkVooJofRgIgWGRy8IrBNFaJrFJ1ga7CmvRFnt4oMBh5BqKge1gT53WW88yMgvZape7Q" +
+  "2Gr+dkZVJI+SRdUYiKgAERAgNPDAalR+ETJzvU/9mkoN6zELJdLXKGYga9lrQ9N8v35Se93eGiS3l0VigFA9qXpQZ2pllQ7GFdoB" +
+  "Ep8VElKsccRW0ADtbDM7058w3l7Bv43epND0AGfM6KLfL6Fu30TVvoz+uE7F5r8h09xVNTMkaEAULB7JDwUVp2BQbK4fF4NzisuC" +
+  "OA0478URjDPqIhNc1QXpM4EZJnBwFDg4zmR2JdDliitqCtGZXb4EDyFDCWwJDe4Fbg2eVW6E/5LT2dn6jR5e7ddXuIi/pMoLrSoh" +
+  "Mf9kQ/wuN6e1fsIl7a2gd+8KZSmwHLKurhlEpkIzpCgWwWJFiA3S8mgzud6MJ/8Sfjv0Ix5gx+TPP696cFSrvCzrC2fg5FDENGiH" +
+  "q9nQ3CJZ2GShFYzsIIRMqrJTmuk4iJeKScT7jox3UtG2F1tXelEquXWrA/U6aJ9KXMNUnYrrUuuzqNqqaOwztU6QwczIYZVM+r2x" +
+  "SdNEikZSIUJ95DR3N94jWDTt2PG42+9oD/PEmrvmjx566uoZ3VlyinaHL2ereakdZCbdCsMGP841zcR9sve45LfQ4vrrcQsX4vdm" +
+  "ZrR3hVKU19WFqVhRBAMKVpQsjMto55/tjvY/Z9eN/noyeltMbipWoqQSpDdapZKt4KqdI3tkELll/xNp7vFRG3ZTI7vV6Dv/A48e" +
+  "Jj8/dMsD8+I4PCcYmYra1SHhjnSbNBmGtFN5sPf45k2Qcskl86Nf/vLwsGjRnLArsln+jKv6/nGKQbdnDr6Bdx+onHtgxrmzM86b" +
+  "realvW/dbZSk+F4pqrL2fxIQPfngfCIUYSlm8Yo//t4rVmCXKkaLY8UKrE4cirVFfe/Jh5Vd3ugPMVET/J2/cy+ydy3K1sKiRDIN" +
+  "EQgasBJJy7fjoeTG9mIsWxGEDPAsxrISX6TQNfui3udrzZ0UYjNHjMzESF0NVsSIGlQcASuCTMYOghHBIGIIUjPYZjI+uLn5ps3S" +
+  "2Hb99dhFi8iad5i/iuJwlgTaCC6AYvAmJg4pv4zn8hlVzO/WNVRAtHLMhRepqZ6uIaQqGPFB8oArL4XEgrFGRUyAkEe5E0YngA/e" +
+  "BFXUFnbIIIqxXnyouvaGv2ytX3k7LDV/Tuvi9gXDEkQGi1tNEQFlpN1oNwtByKT1WYnnYAaYM3ghNfe2ULFHaMUUdXHJi28W1ABG" +
+  "UCf5GVopgkuZvF3VAHVBRpKPbF7Z2LZ0BfGiRSRjt3BGrRY+N3lL2/zHJ8Qmwgtba1gBPPIksQiIzofoTtv9llCZdhA+zX1WpLsc" +
+  "mIbdCkUTUweFbzPF97mJVL24PpqB7caOrv9Ba/2jd/65RbLPCAUn0/PrmN8/aBjjAUb2cFEr8ZzecxZTK1+nOz4cQL0GOiHkRXHZ" +
+  "VZsohIKKEnab28mFIhgyekzVPdG81l+89SsLrsctW0j24TvprxkuxaOhQ4rDmMJXBAMGMtNLNR7jr0Q4vyjHT0TmAsv1vhlvnK3Y" +
+  "AdKGR1VRlUIIiqoWYhEQRXWP26UwSrprpiDkZ2QqFWltuPWEtV99+x2Qwh1/dk9k9gWdiDF9k7eXCCqyHciYmCVeiTen958j0+o/" +
+  "Jo4Opx1SkhDI5+4sKoA4rDiccUTWERtHZCJiGxHZ/LViImLj6HZVM5rs7F0z+mFV5B97EBFCV5Av2xqH+oQMk5fjfEC8YjVgA8Sh" +
+  "QcDy1tZDHAGEXWJZnQ9e18Dh2LgbVPIqjeTJsuCwLsK4CBu7/NVFGFsckUOcy//vIoyJMNZhqxVJW9vj0U3n5CJZatgLE4t716Is" +
+  "JLAKIPQTinqDACHsBOD8+Y5L70g5ufekMBBdjggkweMkyu9IyAtxOFpZJklYh0pHBcQVN6eRPIuK8sljNaISi6kMdz459NPW+qUr" +
+  "iU9aQjJ+O6+LarzTj5GJwSrgFbFVTEiKgRGEQGZ6qVdH+V8iXDAplAVzhFWQGneYioOQBUTt5A3gs0x8e3te/A35jOHEP1Kc+x4e" +
+  "KQiSn7BpbH5HZ9vVj8BiC8v9/hfMLkNZDii9+YUqjrQQyqxuBSzd9us4E5GGDCtusroaGSFJxxlOP81Q9q96W+OxwhI95S23e6TQ" +
+  "gmzFCuzixaTL7mJ6pnyDVIPkga4xoESERx6SLbMP0lnVSl63MwbLGBosb2s+wueAJ1QxsrAYYFs7ErH5nxEQNHhs3ZIO/bJ3681v" +
+  "HanNct3jQ2FM7K4/Ub0gVnd/7dJMRJyOjT2eeh4eLQJlv9eig71cl9XCLw/uMYyp3wrA8lWZPb7+Ul9xp5JoXrrymrcfWqOkWZON" +
+  "Y2dxS/vG38mB9Y/klJ/ELF4MImjzFr5R62dWNk5mLE4goxuHcuPll9i/PfNsf8sLXqRqOmgAMUJmeuipjPJ+ET5+/fVYps/VXCju" +
+  "MEQmYludbLYMevvIyM07GYGxP+HSNJ4im9pf02MpLmINS19+OYvaY6bbJ0O8LvcKjFGyoAiClTwNsDgZyv5Jb2nfyJlU+CnppNHQ" +
+  "J5mQpzAuOhcRwTd/xZJatyxOGpoZIc9IDQRP1unwic/8e3brkYfLdYODvHjuSXjGscFgzRiKcq6u4/McxM6lN9wvy0Cs2EOKycX8" +
+  "XEQETSB0ns0B570PZ2LSJGCdFrkveBXsbkJQzYyt9Np05Lp00/fuhGV/UkfmMzrr6TmAesNSn4wCFIzI1jCRKFp7GlnIZ2bMxIwH" +
+  "lvHM61hyedGekP13CrG6FMP96NgvmWEMX0kTDQhStJ8F+nAM87n6PH6livzLJ8xn7r4jvDgYNcedCKGFhAw1/Uz3I7zbCV9QXc7x" +
+  "F8+r46qzC0uWv6NiCalSG3gT9cE3TbpYfQqnKEXm53rQ1vY1aWPb9yeyqb09TmavWhQgnVHtRqW3cBVCUCTTLQAcU50NModE87vO" +
+  "q5Llgyotfxe3jt/PcnSPHpY/gRsWYmQ5QSO+UqkyK+3gNU+yva1gwygPmoS/V8UsW4a87R/89TbilofvxTz6IN44CIEODUlQPvjQ" +
+  "rYO9xqAb64fPRpiZ10akyOImOvUzjybZrqOz21F87DsJxmaSDK/XnesWMrRywx+1jc94oSwtXEvkujBSKcy0lUyRne08mI3NszF0" +
+  "4TWgalCVvDYBJNmPgcCC/145X1fk1dcd17G4q86bGuNkRaNBPrYGMZ4L5CSa3I87ZZBIBB3erB/XzKSPPFC3rbSyzXVV13p1qe3h" +
+  "oFnV0XeqgsR6GH4oAuMRK4VYJE+/JiprgBrNq2sm/5wWNR8TGXxQbW59Czt+sJEjv1ph8dx9omdo77meYkIwGKapEwENiBgN+MyZ" +
+  "MQBj7bwgBlA/Gb8YLK2g2uBngGH6n3636VLMsvvRR/6NGTbiq+2UoIoUSZS33bgwxnfsfK4DkGPzVkn9LT1ZXIm3bKkPTT1Apttk" +
+  "dAohm25jgm+KRiFcGDu+Np51H0Slo2QjAdtrCAFEFLEGifMJT9Un5V+721jBNDb+RXjiOzcB8PCHOjy8b0zL7fUYRWtRV95lRsBg" +
+  "JGhTh8NQPgdk5hXNRruakVVAQ8Anm4HAHMwfzG4CgkEJ+dzacsG//2d8uRYzq9EitRYnQnARJjTZaCL+CkDvYzCzvMhFnB0CCxyd" +
+  "Q2Yf2MkjodiYJOkN966Ocabpj5/XOqLT4kwZ6B6MniUSOsNguwWMx8VWWmOrZHz9NUFMTMg8ef68a8JTJCAmwicbw4bLrmTwrb0c" +
+  "eMxHiGt10x5eG+771MV7O/PZe0KZmBB0Mg0n4DUUE4NjbGoX5Xs5YjJ2mcggAp6qtdJf/Uzl8M5ft5ez6akCWdk9t8or+CrgH/03" +
+  "Xl2pyJuHxzSzFkceTqirYJvjfHDDdpr6AJcGOMtVmQ1gAlAFxkjGs66RJzb1T1t9Z0O3jgV5y2vaefvTY/ztQH3LX48mMzwqlmSn" +
+  "Ek9TsGjI/kPXXfKNP/HWkbo5p6tV6/+k9h5odHjdauDi/d6iBKO1ycpk7qqH2FmUGoxU869J7u/zFkZLqmhX/KbOoQOv5DB5HEd7" +
+  "InbEiuKAyCAmP0PrNJiIytR2cnt3PPb8JFOCIlbBK6GvC5c0WNl1Cj9M/4srGeStZivQIu9iyhjJxrjG9fHVa79pumPZeJNmak4+" +
+  "3tDbH0wYw5suecHQY/8ayWHnXWVndJ3j2yMZ0iXYLuiMPc6CpY4NQ5bZg78/8F61SUDSZv18QIbImv1gdkyGs7IfC8XU7PRgJjME" +
+  "MDI8aSE07CiaqXMHMjHxJwIZQatRN465OFBTNHtMzBa7YvbYglSVdGdofu6U4RFrOWakSahEGC9oLUZaDYZqlvPat/FK18Vb2Qp0" +
+  "AS3Whxb/nLS5rHYCRcP2GCs/K/+37jhj57aQpW1sZMkL+Zv5S7aEjzHQXIJxjnRICBqiZHxNuurrGSwNPPx7Z30FFufJhdQqGFNH" +
+  "jFNkn1iFuNcnBYNSywVQHEEnL6S0kx9jMBj8nsUGQDD4oCQh0A6eTvAkIRSvnkQ9neBNEjI/ouFF/eM3v+pwP2eomWtKFfWeUKtg" +
+  "WgkX0E3bxlxFBF65pz3GhWu28xx7NJ+oncDapffNiZd+lyoCqZhLJRKGdyIbNiBE2NDQ4DPzStXLozAUrrQ2MoS20Nk5kvpkwx8s" +
+  "EyxeYfPzW5lbG1PvRWw1t6LSKqY7ZL8WihiJdl/ah2o0EeSFu1rfkbHkVqqmgpWiiUAzlPzImwpCHuSqTv6/+FhQryKGRvrwF05u" +
+  "zBjxTFVPCAHJAvR247YP84spi/jB6Kh8L414tDHEG+125tfm8fWjXsi2ibaU5ceuTpafS1sVefPH/bWdjLsHemHDOlIfCEbIrNPA" +
+  "Y/Ix3dr9KUnHU8R6CeNPsOXKbfnJPcmaTAhk5RIP8+sc+JFBAKr16djIoCBGcze8euVeFcrecz0LgVWghgl/YggKyGEM0ssyGkBT" +
+  "V4+8Uo6Vz1ExSzSyPXkXUTF6xhTlCHZ1vu/WqCQRhE7gr48eqx7Qx1ENL1Qq+cwwBhlvs23mFH2nPsx0OnqxzM3TYiCa/7bqwU/U" +
+  "arPb3fbQ0B8dapwcJqIzZvbYQ7ZvzD51u9v8KZ0i16RttZ1RqE/H0lEw5h2qX/2cm33u5XZa93u1vWFbngRPNhsJi1cYVr7R5wLB" +
+  "cdo/vU185zxtPPRmYMjElcOCi/PmK2VzHvxP20+FckPxmvmksCZCpoG6m8m8nhewfOw/WEzMSnboLcPncUz1U3TbU8AeRWwGRagV" +
+  "63HytFlEMSHkbko8RtsaglaMrn/ZC5J1a7bbqL+HxgF9frg+wCizaXATHXkznd6X9M4Z1dqU6EK+7OpyXFo1B99t7UypmB5qBlMR" +
+  "rAVHQGuG/sxftPJ2nvuSF/DjvrpM3b4ZZkdqNUgwXWrMQ+b5fuPlF0rt/GOsZv8aAOZvsnRfb1i1KCsEYs1p310cqtWPUhs8Scc2" +
+  "/obbv7YOQG3lGExULPMIj+15wfbXYDYwGibaBgTFGWV65R9g7DpW0mYxMY+i3NF+HHic/2ZNuwO86KcUXgqAabx4YD7T3Gn0m1Pd" +
+  "O+3xY7GbYbsNqTWkE9lT7gZV0uBNhseqGofxWTBdB1WO/J5Mf/9Ff7H17CeltgBsuzt6dvqIW+C3+b+oncbqBUuvd6uWL0rhUph1" +
+  "ft0cveANGlU/GGx8EiEFn3rarV9MvksUz83jtQxC9hDAxOz0fisUOvI4QSjKZpZOCPRVTpA3TPmh3rfj3axk06SrecOcmLFE6HlY" +
+  "2UqYrMpuRZiOYexI4V0nZizJg0IB4tMrR7iBysm+yywKXe7UULNHa3cUayVvjMtyY6a+pfneFjLhxkRxWKxxpirORYFYFdfOks4o" +
+  "9zaSSmXiFMZv5oD6DE4KYl+ikR6RJPrYpu2DP7p17PgN6C9ZtXxRVnvRFbM79f63Kebc4CpH4TNIWh4NiqqjPXYdQF/fWwZGnZun" +
+  "ouDTlNaOfN30yvv3qlD2nt9bimE5ITqla152ZO+dWrFCmChpayA2lrFks4ynl+n2zrXc0ryf3XYfmHyPGzCsypuVJsW/oHaS6Yle" +
+  "qvXoJdTtc7TuuoiLrCrHFzsfGKxIsY4iFGm1oyJIrLjM4zI/RBr+q9X2N7DV3MRvszW/OWd7Ov8Mjsha8nLjeJlxnOpVWkHcD3aM" +
+  "dV8y64Sdt01Yl+jlK47LevrPBd6utjaFpAlJ2+M9+ABiLc2xddx/w7HsuHzMHb18gZ915A0axUhr7GG9acWx8NMOf+LmT888i7I8" +
+  "P+n0tvGH5JCux6mZw4qZ4TwsbXtPzc3Umvs7au7jzKytBbZJku0wzeweRrLr/PLO/y0yHetOqz4vG6y+Rqr2TK3bY0LdTuzDBl49" +
+  "7aAYY/J1iDJR+QgISiSWWIxBcZ00da3snrQT/iNd63+SXjv0G8CrMouNLCLhPSSygJoe5KYrYYvsSDK3fHXz0H868cQ1G2AIBdN7" +
+  "zo9eMe76z0uVs7A1R3sMOg2P90Vvv4CGDFOHdMu17Lh8DCDrnfoSolpeLk7DXfDTDovVsnLvdbftbdejRXd9WxN/HSY+D0JAxUwG" +
+  "t6lmGHH0RFYSfySNtCEZ18fj4yta/8VGTuyax3S3hC77mqxq51Kx+U8GVTrBY5C8sVFskS0pSkABZywVsUYU10p2uNHsxmYjuya5" +
+  "NP15QmN7HUi2cwqf5u+zjJcn98m8uF8tvUBL8WPmjnYjuuTXjVNXLjpx1TCsYfH5i/v+Iz3vDbbS9V419ZPVOGiNQmcsw2f5QhEt" +
+  "qtDB59akPRaineuuTEFgvpOo9jrFAxH4JJ8c3Lpsr88g7xvLNbZm36fPn5fP6agHMcRi0GBkLNnCdr8y2jj+7eSuZLUCnUW9b5ZX" +
+  "2/M0cgupWTO5LUZHPUYNRgwibmJGFtWASr7JTkWsGMW106FozF/XHE2uSr438pMEOqpYPsbL07a8QZUXsV0PwoGzgFPCmARtyM+a" +
+  "oX7p2Sv+/cerli/KYBVHnfe1w9ZFx77tWlN7R+jpPRyfQWs8kKrivSGoI4RcHMHnzbdYT5IYNt57U/rgZ+4EheM+/0Ktds8BD1ma" +
+  "Mb7ll3lpf+9vHrj3ex3yWAV57dRbdGr1ufnWWR4ZT2+TRnZ5+PnIFUASz4uPSg6qfYBK9CZqdtrkthiBDNRgxUwGoqYozRjxWCA2" +
+  "lkiw7cxHmb8xaaT/O1w9cjXQUsVyHy8fbcibrNGXdXUzFZunSxpAusF3aGXYH+1Muy+edeLoDcVyM6afc9kpI32Hn5vYrjeGWl8/" +
+  "WSePPzIveDVkHpIMvM+36kgzSBLojMPods/YTmvHHn613/i9HwFw+qUr6J2xGFGVxtAdetO7TinSQS0tSt6X4nUk/azU7QrG/U91" +
+  "uPVVvWH8OgXsC3pfGnrMh5OKezl1V+zBpr6YJTMYcXvEeXk7s8eIJRYrQDSerJPUX9m5t3mZv7fzaAUYvsm+ZDgJ52y7Qc/s6WZG" +
+  "b01pd2B8lI4zVCp94Nuy07fNlRuSnu8cMX/4HhhBwUx958qzR6Lp52+tVM/U7n5D0oTWaEYIBjSPP8zEfnIpNMdhbATGR6DdgM54" +
+  "PsPcGf6137j+J6DC3E8dTa33VWg7w9SdtFtXKQQW3OCeFKzvpxZlFzY+MT4quTP5LYB5ycCbQ5WPStXNV2fIdzIhQ4qONpnsTN0V" +
+  "81g8VhyxYNOAS7Kb0xH9dvg/O78PoLfwrLVDvEuVJT11ObxeVZIUvCd1Dh9HVOs9kLZla4q7/InxWZcevWDdWoDFC+Z0//TApUua" +
+  "lennh3r3KRpXIW2DBo+qwTjBGMi8Mj4ujAzDzm0wNqJ0mpClAkHz1ZAEgreMPr6ILVffACCnX/J97T/gzfi2J03GWXPXMTzxhY37" +
+  "Qgf+viaUvAC3qO892mU/QM3N09y95PM3RiwTa+Rkj5KbIngicTiwbZ/Eneza1mPJl7iz9Zu6hft+yJJWynutYWF/L8bnYYJ3lmAN" +
+  "WomJe7uh1ZGNwdhLHxmfcdnxizasBzjtte+bfk+08G2tqP/80DN4FM5B2g7kuygZXCSIgXYTtm+BrZuhMZq7GEIx2Vmk/SGDkGZI" +
+  "5Ghs/h4bLjsHgGM/cxozj7oZGzyuK5Kh9VfoLe89l8UrbFHFpXQ9kxNkWO7EqeGt2h/NYyxLMMYV7QW621odLRqZFPA4cTica2VD" +
+  "0Wj23dbPk6+22u0ndD1T7v4VnyTjXIVDa5U8XBhvklmHWENwlqivG1qJbBpr228+Nn7Qd+a9ZO0W2MDxr/jI7DXRCe++LR54j3ZN" +
+  "OVCNQtryZCafubZOsJEwOgIb18H2zUqnlQvDOMGZfPMCDRBCHvCEJIBY2iNbGF77UZYuNSxfjgzM/EeNY0NoB5LxVBtbvpRflJX7" +
+  "zPDsSxYlr2sczCyZN3iX1uw0MjTPYApxTOw7L5q7GAuumW23zfSSzv8Z+zwwOvYzjn1wOx8GlvR105NmoIHMObAWY4RQiXH9PdDu" +
+  "yJaAueTxodkXn/T6dZsAjln0/kMejk4839f6zgs9U6bnrkIzrMuzKWOUqCq0GrDuEdi2KRdCFBU7MahMCkNDblXUQ/BK8B7F0djy" +
+  "BjZfeS2Amf+lD4YZz/oa2XiHuKciQ0/8QH/1vjfvS9Zk33M9E7sWnFJ7HQd2XwtkKK7oqQVVTyQWC9LMhsy4/5b/+cjngMb6H3Ha" +
+  "5gZ/Y4Wze+rQ6oAImbUYZxFjCJHFDvRCu8Owqnz74aGBb56+ZGgDwBGnnnPk+vjE96e1wXeErqmD+QCrx7ld7iWKwVjYsBY2PApZ" +
+  "VnwuDz8KURUbCu4hEgg+RaKIxoZ/ZNOVH0MEjlr+bGYf9WviuA6qpGnK2vuO59FPPZwv+tp3dlfa97YPXYBjFZks7P2yHlD9MO2Q" +
+  "oWJw+f4C0krbtLJL+58Y/eLI/TzxyA85bWeLZc7x0loF2gk4S2Ydtth41BtBBnsw7UTaRvjOzk7PV446a/QRgMNPeN2zttbmvD+J" +
+  "B85Nu2b05ZGPzbDW4mLBuDyDqdYhacEj98LITohrRVZTtMFMbHEBuTgmLIp68FmGqThpbfmxrr/iVSxWw8q5Vp730Zu0d9pzyRoJ" +
+  "lf5Ytq39jN52wd/ta9Zk3xTKrq0ujJzZf70OVp6X10v8uIwkV8UPjn02XcejAbjpCvnc7Kn8VbuteCVUYkK1amwcO4zJgvigtZq4" +
+  "EBTvZcW2Ru2io85q3glw0NxFRzTqcy4Icf+7kuq0vkQFbyoZpmawscFYsE6xFqpdwsg2Ze19gg8QV4u9TbRYGaBFz5wWmY2XQihK" +
+  "yDym6mgP3cH4jYt40QNNVoq3J3/1Yj/1sPeSNhLirliaOx/S+2+fz/u/2cynN2Sf2vLc7YNCUVaiCGlt3fAbWvHgrYpucTs6/86h" +
+  "XXN1ZvRm/ZehT88/nyhT/fZYk+cO9rEwy8iqFaKuumq1XvVR/8wIGSbbOXxTs+UuGnhe8yfQ5PD5zzs4rT7rgo70v0fdwEAahKST" +
+  "ZN5ULNa4yb0+86xUcJGy7gHY9IgQ1cDFuSvJ143s2reWUIhDC4viQX2GqUR0hu5jxz2v4GMPjLNcgjnhogt9/4HvJRtPsc6QtoMd" +
+  "WvvubNu3GqzeZmFl2Pfu3n0XA4T4YOZkR/d+KxxYP5UuWxEDdmvr7/xVQ59R4K7/TVf/VFZOH+Tl7YS0p4fIDVbxzFzTpufT3Yfc" +
+  "+88ABx/3/IEZBx/yoWZauyCR3qmjbaGRVrIOdZtJTTAVMDHYOF92E1VyUWx6EIY2QVzPN1jZYwJ3twVdE26GIssJSYapONKx+9m2" +
+  "9mU0r9uIiHLcPyxm6mFX40xACcQ9kdm65m/Dbz7y2X3R5UwWufZhoSgLcP4etpgjq6P0R28BSVAJOhidER0Vqd7dWvXtefhjlKsP" +
+  "7+HwqTPkhIAdabf44qZNQ++accLW2w455JDq5z//6vfNOvjA7zazrteOtWx9pBGydmol1dh6dcX6DlusyxKwUT7Y6++FxlAej8Dk" +
+  "Y1pynpTVTB5ZHriaSkQycg/bHziT9s0bWbYMe+zyMxg8+Bri2BCyQNwTyc51/6a3X/gBFix1/OQDfl8djH3/eT1FcGte3nduOLR+" +
+  "OSIZRlRqErltzYuyK4b+RovKys5bzbu9hl9NPY3fApz40le/sdY7/W8G+uLjm21haNRnO8cjO96JpJlGmoQYT0UwFUWiPHB1VfAp" +
+  "bHsIsjT/eKLKN9HPooVQJnaz3RW45imwiR3t4RsYufuNNO7ehojaucsXhcGD/l2jSh3NMuLuSBo77tPVv3g+QytG85EQLYXy/4dY" +
+  "zu7/oB7a9TVVMgwqNROZrc0vhe/u+OiEWAAOOfnFp9na9GU93ZWXiqswPGbSRsuaNFjjgyMNDk+EJ0IlyvfxwkFUg2QchtYWD4Eq" +
+  "+lYnG54mH7EjxcZ9skskmc/3mrQi7R1X6KYV70U1RUTtsZ84K/QfvEKjahchS6l0RdIe36br73oej35tzd7Y5fGZ5Hp28TiBpTi9" +
+  "tH2rOdA16YtehoqSkdFfeb6dGz/7ue9v/uSJEfWrWRk/+JuuIyTq+lBHq/Xhhiat1LrERybJHB3vSDNLyMyuVSLiwETC+FYYXieI" +
+  "FYx90nSBSh6w7mZFyCS3IpkH4whpajpDf6mbr/k4ixWWSDDHLj1H+2ZfrVFcIaQpUS2SpD1mtz5wVljzpXtYvMKy+gP7/G7UT69n" +
+  "Ci7FsZzMvHrgo3pw/YsqElA83SYyI53/jO4fPqezqvNY/s3Hzuh61tyLfXXqazJxBC9ZUOd27Qttcqth8mVENLdCMqbYKkixJkQm" +
+  "VKLyJJejRZbjURVMbCQZ+602t57Hzp//qijNBzNn2f8TBmb9PdYo3nsqdSdZ2jLbHj7b//az17FgqWPV8uzpcOnt00ooqwrLckn7" +
+  "P83seLt221dgjaETUu2JDguDlSV2tlmtD3QeRraOpzvuvxpmD2dafaFKdwVVP7lkXYrHsnRGYHyDkrXBVgRR2W0xWr4n7GQ5fqKQ" +
+  "luWxCNYRMpFk5Fvauv0t7PzNw8Xf2SXz3nOZ9h/wISR4vA/ENSdJp2GG173Wr/70L59OInn6CWV3sVzcus3OMvdLl32VVmyFtiZU" +
+  "Xb92x2+VoyuOu5r/CeLD+AO3RdR+jFYPVxs/CxMJIUtJG0J7O6SjRTzyFCUlCbtSX4pgVb0vUiQj6didtLa/nW0/+gbtkQ4oHHbh" +
+  "PDnsOT/SrmkvxXfyZw1FXZF0xrfbLQ++0j/4+RuebiJ5+rmep3BD9mV9C/XQ+tWhN5pOOyRYcVStkZH0Zrd2/IL0p8P3TMSgZvBV" +
+  "b9dKzyfVuSMIKQgpYm2+n2vxFNPJXZFkV2aTL6kIIA5jkay5TbLxi8LWH3+T3R65YY762AXaPfUijXu60U6KWIh7I2kOr3GbH3xd" +
+  "uv7i+56OInl6C2W3bCh+Yc+zsqPqV4fByol0NM33mrSRtPy4NDqfDJdv/Wq+R6sCfQNm6ukf0Kj2QXX1aUUjUZbvMG2LdYfFP1pM" +
+  "A6s4RBDfHtOscxmNx79I6+4Nk1nQtMVHMu3Ir1Cf/oqi1pJhHETdThrbbtYNdyxm28rN+3JB7ZktlN3EMjhI785XTrtEp1XfhEfx" +
+  "mhLbmFiQ0fRG3dj+GP/vjl9P/lzt2QfQfej7xdbfp1FtSvHkhXxbdS0CWDEWApJ2thPa/6Kdjd9i9M7dN8uKzJEXfkCrfZ/USn8/" +
+  "mmWIgIutmFhobL1c7112AdDOd51e6Z+ul/npL5TcDZmJx9ybN079UJgaf556FJOEFCNCzTppZYlphq/7+0c+x82NbZN6qR0/u907" +
+  "83yonqdR1wGTbkczyNprCONXML7jClp3btzjdx74zpfRNfXvqQ4+tyjle6xTopqTrN2Rsc0fC2u+/I38En/SPN0fyPTMEMrEuRQP" +
+  "WHBnDZ7iD4gv0SmV40mKSRhnImoGGtl600i+EC7dchlMPrCSHg6YMj5lzhI10TtUZIis/V2G7v8JbBnf47fMfP1JUp/+ca30v56o" +
+  "BiHziFVsZIjqRlrDd9vhJ87P1l92e+FqAk/Tp6c/U4WyhyuaBfXN58z4NNPiD2vFQhpSRCA2ERZkPF0tI+kXw2VbrgTS3395ijGe" +
+  "9Zr5VKb+L+KeNxL1WDQNiAkYC67mJGTQ3PllXXPVJ2BT8+katO4/QoFdnXKAfe20M8Os6B91IJ5DpopqhhihIg5RGA93mEb6paMv" +
+  "3nTN6ievbQaY/doX4Xrej+16DXGfLR4I5DFGcbHDVJHO2D1mZNNH/cbv/rL4A57W8cj+I5SJc1uBYQl+BnRtffvMpQxGH9Fe50g0" +
+  "yx/hglCxVlAYT++RMX9JuH3j93joZEfPzCW4vrfh6qdh60WqbLK8oSkSXJeVrDUu7eEvhEe/9Xmg9UxyNfuTUH7HurizB08Ns2sX" +
+  "hcF4AVYg0xSKBzHE4nABNprHWXm8ozYwG2tB8YgNGCOYCFzdiQYkbV3jdqxdmgz9aPUz1YrsX0J5knUBMOfMeKcOREt1SnwoAQia" +
+  "AoYowFjNctVzwERZLg6nGGuwXQZAfPNGk4x+2j/xvZ/n+njmWpH9USi70uhlxQPm5jBoT55xYZhauUD7o6lkCuJThqrCNSeAjRXr" +
+  "HLZLIGB851fSHv+y3/yDa/L3WmpYDvvLc4j3L6E8hTuqnT7lgOS42oXa484LU2UK22pw1QkQVRHNVAg/l6T5Nb/5hz9hssiyxDyT" +
+  "3UzJk2+Spbuay2unDs62fzFjmTnv2Y/JjNevl+mv/7qbcubJe95Ti2152fZnwez29PRBjuyl77iBXV9WKQVS8nstTC6Opaa8LCV/" +
+  "KG6T8jKUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSU" +
+  "lJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSU" +
+  "lJSUlJSUlPyP+P8ANYSs7Mx9dp0AAAAASUVORK5CYII=";
+
+
 async function sbFetch(path, { method = "GET", token, body, headers = {} } = {}) {
   const res = await fetch(`${SUPABASE_URL}${path}`, {
     method,
@@ -926,6 +1078,7 @@ const SITUACAO = {
 };
 
 const PIX_TIPO_LABELS = { cpf: "CPF", cnpj: "CNPJ", email: "E-mail", telefone: "Telefone", aleatoria: "Chave Aleatória" };
+const MODALIDADES = ["Futevôlei", "Beach Tênis", "Vôlei de Praia"];
 
 function formatBRL(n) { return "R$ " + Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function initials(name) { return (name || "?").split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase(); }
@@ -1082,6 +1235,13 @@ function EscolaFormFields({ form, setForm }) {
   return (
     <div className="space-y-4">
       <FormInput label="Nome da escola" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-wide mb-1.5 block" style={{ color: C.textMuted }}>Modalidade esportiva</label>
+        <select value={form.modalidade} onChange={(e) => setForm({ ...form, modalidade: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border outline-none text-sm" style={{ background: C.card, borderColor: C.border, color: C.text }}>
+          <option value="">Selecione a modalidade...</option>
+          {MODALIDADES.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+      </div>
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-semibold uppercase tracking-wide mb-1.5 block" style={{ color: C.textMuted }}>Tipo de chave Pix</label>
@@ -1132,7 +1292,21 @@ function EscolaFormFields({ form, setForm }) {
   );
 }
 
-const BLANK_ESCOLA_FORM = { nome: "", pix_tipo: "email", pix_chave: "", beneficiario_nome: "", beneficiario_banco: "", beneficiario_agencia: "", beneficiario_conta: "", whatsapp: "", dias_vencimento: [5, 10, 15, 20], logo_url: "" };
+const BLANK_ESCOLA_FORM = { nome: "", modalidade: "", pix_tipo: "email", pix_chave: "", beneficiario_nome: "", beneficiario_banco: "", beneficiario_agencia: "", beneficiario_conta: "", whatsapp: "", dias_vencimento: [5, 10, 15, 20], logo_url: "" };
+
+function isFutevolei(modalidade) {
+  const s = (modalidade || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return s.includes("futevolei");
+}
+
+function CafSelo({ size = 14 }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ background: `${C.green}22`, color: C.green, border: `1px solid ${C.green}44` }}>
+      <img src={CAF_SELO_DATA_URL} alt="CAF" className="object-contain" style={{ height: size, width: size * (138 / 200) }} />
+      Parceiro CAF
+    </span>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* Main App                                                             */
@@ -1205,10 +1379,10 @@ export default function REDEApp() {
   useEffect(() => {
     if (escola) {
       setEscolaForm({
-        nome: escola.nome || "", pix_tipo: escola.pix_tipo || "email", pix_chave: escola.pix_chave || "",
+        nome: escola.nome || "", modalidade: escola.modalidade || "", pix_tipo: escola.pix_tipo || "email", pix_chave: escola.pix_chave || "",
         beneficiario_nome: escola.beneficiario_nome || "", beneficiario_banco: escola.beneficiario_banco || "",
         beneficiario_agencia: escola.beneficiario_agencia || "", beneficiario_conta: escola.beneficiario_conta || "",
-        whatsapp: escola.whatsapp || "",
+        whatsapp: escola.whatsapp || "", dias_vencimento: escola.dias_vencimento || [5, 10, 15, 20], logo_url: escola.logo_url || "",
       });
     }
   }, [escola]);
@@ -1564,7 +1738,7 @@ export default function REDEApp() {
   function openNewEscolaModal() { setEditingEscola(null); setNewEscolaForm(BLANK_ESCOLA_FORM); setShowEscolaModal(true); }
   function openEditEscolaModal(e) {
     setEditingEscola(e);
-    setNewEscolaForm({ nome: e.nome, pix_tipo: e.pix_tipo, pix_chave: e.pix_chave, beneficiario_nome: e.beneficiario_nome, beneficiario_banco: e.beneficiario_banco, beneficiario_agencia: e.beneficiario_agencia, beneficiario_conta: e.beneficiario_conta, whatsapp: e.whatsapp });
+    setNewEscolaForm({ nome: e.nome, modalidade: e.modalidade || "", pix_tipo: e.pix_tipo, pix_chave: e.pix_chave, beneficiario_nome: e.beneficiario_nome, beneficiario_banco: e.beneficiario_banco, beneficiario_agencia: e.beneficiario_agencia, beneficiario_conta: e.beneficiario_conta, whatsapp: e.whatsapp, dias_vencimento: e.dias_vencimento || [5, 10, 15, 20], logo_url: e.logo_url || "" });
     setShowEscolaModal(true);
   }
 
@@ -1755,7 +1929,11 @@ export default function REDEApp() {
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${C.blue}22` }}><Building2 size={18} style={{ color: C.blue }} /></div>
                     )}
                     <div className="min-w-0">
-                      <div className="font-display text-lg truncate">{m.escolas?.nome}</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="font-display text-lg truncate">{m.escolas?.nome}</div>
+                        {isFutevolei(m.escolas?.modalidade) && <CafSelo size={13} />}
+                      </div>
+                      {m.escolas?.modalidade && <div className="text-[11px]" style={{ color: C.textMuted }}>{m.escolas.modalidade}</div>}
                       {m.situacao === "aprovado" && <div className="text-xs mt-1" style={{ color: C.textDim }}>{getPlanGlobal(m.plano_id).nome}</div>}
                     </div>
                   </div>
@@ -1778,7 +1956,13 @@ export default function REDEApp() {
                         ) : (
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${C.blue}22` }}><Building2 size={16} style={{ color: C.blue }} /></div>
                         )}
-                        <div className="font-display truncate">{e.nome}</div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="font-display truncate">{e.nome}</div>
+                            {isFutevolei(e.modalidade) && <CafSelo size={12} />}
+                          </div>
+                          {e.modalidade && <div className="text-[11px]" style={{ color: C.textMuted }}>{e.modalidade}</div>}
+                        </div>
                       </div>
                       {browsingEscolaId !== e.id && (
                         <button onClick={() => { setBrowsingEscolaId(e.id); setSelectedJoinPlanId(null); setSelectedJoinDia(null); }} className="text-xs font-semibold px-3 py-2 rounded-lg shrink-0" style={{ background: C.blue, color: "#fff" }}>Ver planos</button>
@@ -1878,6 +2062,14 @@ export default function REDEApp() {
                   <div className="p-6">
                     {selectedMatricula.escolas?.logo_url && (
                       <img src={selectedMatricula.escolas.logo_url} alt={selectedMatricula.escolas?.nome} className="w-14 h-14 rounded-xl object-contain mb-4" style={{ background: C.sand }} />
+                    )}
+                    {(selectedMatricula.escolas?.modalidade || isFutevolei(selectedMatricula.escolas?.modalidade)) && (
+                      <div className="flex items-center gap-2 flex-wrap mb-4">
+                        {selectedMatricula.escolas?.modalidade && (
+                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ color: C.textMuted, background: C.borderSoft }}>{selectedMatricula.escolas.modalidade}</span>
+                        )}
+                        {isFutevolei(selectedMatricula.escolas?.modalidade) && <CafSelo />}
+                      </div>
                     )}
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div>
@@ -2341,9 +2533,13 @@ export default function REDEApp() {
                     {allEscolas.map((e) => (
                       <div key={e.id} className="rounded-2xl border p-5" style={{ background: C.card, borderColor: C.border }}>
                         <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="font-display text-lg">{e.nome}</div>
+                          <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <div className="font-display text-lg truncate">{e.nome}</div>
+                            {isFutevolei(e.modalidade) && <CafSelo size={13} />}
+                          </div>
                           <button title="Editar" onClick={() => openEditEscolaModal(e)} className="p-1.5 rounded-lg transition-colors hover:bg-white/5 shrink-0" style={{ color: C.textMuted }}><Pencil size={14} /></button>
                         </div>
+                        {e.modalidade && <div className="text-[11px] mb-1" style={{ color: C.textMuted }}>{e.modalidade}</div>}
                         <div className="text-xs" style={{ color: C.textDim }}>
                           {adminsByEscola[e.id] ? `Admin: ${adminsByEscola[e.id].nome || adminsByEscola[e.id].email}` : "Sem administrador definido"}
                         </div>
