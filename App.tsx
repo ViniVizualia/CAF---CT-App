@@ -1321,6 +1321,25 @@ export default function REDEApp() {
   const [authForm, setAuthForm] = useState({ email: "", password: "", confirmPassword: "", nome: "", telefone: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [recoveryAccessToken, setRecoveryAccessToken] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+
+  useEffect(() => {
+    if (window.location.hash.includes("type=recovery")) {
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      const token = params.get("access_token");
+      if (token) {
+        setRecoveryAccessToken(token);
+        setIsRecoveryMode(true);
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+    }
+  }, []);
 
   const [toast, setToast] = useState(null);
   function showToast(message, type = "success") { setToast({ message, type }); setTimeout(() => setToast(null), 2600); }
@@ -1390,8 +1409,33 @@ export default function REDEApp() {
   function resetAuthForm() { setAuthForm({ email: "", password: "", confirmPassword: "", nome: "", telefone: "" }); setAuthError(""); }
   function goLanding() { setView("landing"); }
 
+  function openForgotPassword() { setShowForgotPassword(true); setResetSent(false); setResetEmail(""); setAuthError(""); }
+  function closeForgotPassword() { setShowForgotPassword(false); setResetSent(false); setResetEmail(""); setAuthError(""); }
+
+  async function handleForgotPassword() {
+    if (!resetEmail.trim()) { setAuthError("Informe seu e-mail."); return; }
+    setAuthError(""); setAuthLoading(true);
+    try {
+      await sbFetch(`/auth/v1/recover?redirect_to=${encodeURIComponent(window.location.origin)}`, { method: "POST", body: { email: resetEmail.trim() } });
+      setResetSent(true);
+    } catch (e) { setAuthError(e.message); } finally { setAuthLoading(false); }
+  }
+
+  async function handleSetNewPassword() {
+    setAuthError("");
+    if (!newPassword || newPassword !== newPasswordConfirm) { setAuthError("As senhas não coincidem."); return; }
+    setAuthLoading(true);
+    try {
+      await sbFetch("/auth/v1/user", { method: "PUT", token: recoveryAccessToken, body: { password: newPassword } });
+      showToast("Senha redefinida com sucesso! Faça login com a nova senha.", "success");
+      setIsRecoveryMode(false); setRecoveryAccessToken(null); setNewPassword(""); setNewPasswordConfirm("");
+      goLanding();
+    } catch (e) { setAuthError(e.message); } finally { setAuthLoading(false); }
+  }
+
   function handleLogout() {
     setSession(null); setRole(null); setAuthMode("login"); resetAuthForm();
+    closeForgotPassword();
     setMinhasMatriculas([]); setAllPlans([]); setEscolasCatalogo([]); setSelectedMatriculaId(null);
     setShowExplorar(false); setBrowsingEscolaId(null); setSelectedJoinPlanId(null); setSelectedJoinDia(null);
     setSelectedJoinTipoCobranca(null); setSelectedJoinPlataforma(null);
@@ -1822,6 +1866,25 @@ export default function REDEApp() {
       <style>{GLOBAL_CSS}</style>
 
       {/* ---------------------------------------------------------- */}
+      {/* RECUPERAÇÃO DE SENHA — tem prioridade sobre qualquer tela   */}
+      {/* ---------------------------------------------------------- */}
+      {isRecoveryMode ? (
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <div className="w-full max-w-sm">
+            <div className="flex justify-center mb-6"><LogoPlaceholder size={100} /></div>
+            <h1 className="font-display text-2xl tracking-wide text-center mb-1">Nova senha</h1>
+            <p className="text-sm text-center mb-6" style={{ color: C.textDim }}>Escolha uma nova senha pra sua conta.</p>
+            <AuthInput type="password" placeholder="Nova senha" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            <AuthInput type="password" placeholder="Confirmar nova senha" value={newPasswordConfirm} onChange={(e) => setNewPasswordConfirm(e.target.value)} />
+            {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+            <button onClick={handleSetNewPassword} disabled={authLoading} className="w-full py-3 rounded-lg font-semibold text-sm" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
+              {authLoading ? "Aguarde..." : "Salvar nova senha"}
+            </button>
+          </div>
+        </div>
+      ) : (
+      <>
+      {/* ---------------------------------------------------------- */}
       {/* LANDING                                                     */}
       {/* ---------------------------------------------------------- */}
       {view === "landing" && (
@@ -1874,30 +1937,57 @@ export default function REDEApp() {
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-sm">
             <div className="flex justify-center mb-6"><LogoPlaceholder size={100} /></div>
-            <h1 className="font-display text-2xl tracking-wide text-center mb-1">Área do Aluno</h1>
-            <p className="text-sm text-center mb-6" style={{ color: C.textDim }}>{authMode === "login" ? "Entre com sua conta." : "Crie sua conta e escolha suas escolas."}</p>
 
-            <div className="flex rounded-lg border overflow-hidden mb-5" style={{ borderColor: C.border }}>
-              <button onClick={() => { setAuthMode("login"); setAuthError(""); }} className="flex-1 py-2 text-sm font-semibold transition-colors" style={{ background: authMode === "login" ? C.blue : "transparent", color: authMode === "login" ? "#fff" : C.textMuted }}>Entrar</button>
-              <button onClick={() => { setAuthMode("signup"); setAuthError(""); }} className="flex-1 py-2 text-sm font-semibold transition-colors" style={{ background: authMode === "signup" ? C.blue : "transparent", color: authMode === "signup" ? "#fff" : C.textMuted }}>Criar conta</button>
-            </div>
+            {showForgotPassword ? (
+              <>
+                <h1 className="font-display text-2xl tracking-wide text-center mb-1">Recuperar senha</h1>
+                <p className="text-sm text-center mb-6" style={{ color: C.textDim }}>Informe seu e-mail e enviaremos um link pra você criar uma nova senha.</p>
+                {resetSent ? (
+                  <div className="rounded-lg border p-4 text-sm text-center mb-4" style={{ background: `${C.green}14`, borderColor: `${C.green}44`, color: C.green }}>
+                    Se esse e-mail estiver cadastrado, você vai receber um link em alguns minutos. Confira também a caixa de spam.
+                  </div>
+                ) : (
+                  <>
+                    <AuthInput type="email" placeholder="E-mail" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
+                    {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+                    <button onClick={handleForgotPassword} disabled={authLoading} className="w-full py-3 rounded-lg font-semibold text-sm mb-3" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
+                      {authLoading ? "Aguarde..." : "Enviar link de recuperação"}
+                    </button>
+                  </>
+                )}
+                <button onClick={closeForgotPassword} className="text-xs underline block mx-auto" style={{ color: C.textMuted }}>Voltar ao login</button>
+              </>
+            ) : (
+              <>
+                <h1 className="font-display text-2xl tracking-wide text-center mb-1">Área do Aluno</h1>
+                <p className="text-sm text-center mb-6" style={{ color: C.textDim }}>{authMode === "login" ? "Entre com sua conta." : "Crie sua conta e escolha suas escolas."}</p>
 
-            {authMode === "signup" && (<>
-              <AuthInput placeholder="Nome completo" value={authForm.nome} onChange={(e) => setAuthForm({ ...authForm, nome: e.target.value })} />
-              <AuthInput placeholder="Telefone" value={authForm.telefone} onChange={(e) => setAuthForm({ ...authForm, telefone: e.target.value })} />
-            </>)}
-            <AuthInput type="email" placeholder="E-mail" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} />
-            <AuthInput type="password" placeholder="Senha" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} />
-            {authMode === "signup" && (
-              <AuthInput type="password" placeholder="Confirmar senha" value={authForm.confirmPassword} onChange={(e) => setAuthForm({ ...authForm, confirmPassword: e.target.value })} />
+                <div className="flex rounded-lg border overflow-hidden mb-5" style={{ borderColor: C.border }}>
+                  <button onClick={() => { setAuthMode("login"); setAuthError(""); }} className="flex-1 py-2 text-sm font-semibold transition-colors" style={{ background: authMode === "login" ? C.blue : "transparent", color: authMode === "login" ? "#fff" : C.textMuted }}>Entrar</button>
+                  <button onClick={() => { setAuthMode("signup"); setAuthError(""); }} className="flex-1 py-2 text-sm font-semibold transition-colors" style={{ background: authMode === "signup" ? C.blue : "transparent", color: authMode === "signup" ? "#fff" : C.textMuted }}>Criar conta</button>
+                </div>
+
+                {authMode === "signup" && (<>
+                  <AuthInput placeholder="Nome completo" value={authForm.nome} onChange={(e) => setAuthForm({ ...authForm, nome: e.target.value })} />
+                  <AuthInput placeholder="Telefone" value={authForm.telefone} onChange={(e) => setAuthForm({ ...authForm, telefone: e.target.value })} />
+                </>)}
+                <AuthInput type="email" placeholder="E-mail" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} />
+                <AuthInput type="password" placeholder="Senha" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} />
+                {authMode === "signup" && (
+                  <AuthInput type="password" placeholder="Confirmar senha" value={authForm.confirmPassword} onChange={(e) => setAuthForm({ ...authForm, confirmPassword: e.target.value })} />
+                )}
+                {authMode === "login" && (
+                  <button onClick={openForgotPassword} className="text-xs underline block mb-3" style={{ color: C.textMuted }}>Esqueci minha senha</button>
+                )}
+
+                {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+
+                <button onClick={authMode === "login" ? handleAlunoLogin : handleAlunoSignup} disabled={authLoading} className="w-full py-3 rounded-lg font-semibold text-sm mb-3 flex items-center justify-center gap-2" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
+                  <LogIn size={16} /> {authLoading ? "Aguarde..." : authMode === "login" ? "Entrar" : "Criar conta"}
+                </button>
+                <button onClick={goLanding} className="text-xs underline block mx-auto" style={{ color: C.textMuted }}>Voltar</button>
+              </>
             )}
-
-            {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
-
-            <button onClick={authMode === "login" ? handleAlunoLogin : handleAlunoSignup} disabled={authLoading} className="w-full py-3 rounded-lg font-semibold text-sm mb-3 flex items-center justify-center gap-2" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
-              <LogIn size={16} /> {authLoading ? "Aguarde..." : authMode === "login" ? "Entrar" : "Criar conta"}
-            </button>
-            <button onClick={goLanding} className="text-xs underline block mx-auto" style={{ color: C.textMuted }}>Voltar</button>
           </div>
         </div>
       )}
@@ -2224,19 +2314,44 @@ export default function REDEApp() {
           <div className="w-full max-w-sm text-center">
             <div className="flex justify-center mb-6"><LogoPlaceholder size={100} /></div>
             <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${C.blue}22` }}><ShieldCheck size={20} style={{ color: C.blue }} /></div>
-            <h1 className="font-display text-2xl tracking-wide mb-2">Área Administrativa</h1>
-            <p className="text-sm mb-6" style={{ color: C.textDim }}>Entre com uma conta de administrador.</p>
 
-            <AuthInput type="email" placeholder="E-mail" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} />
-            <AuthInput type="password" placeholder="Senha" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()} />
+            {showForgotPassword ? (
+              <>
+                <h1 className="font-display text-2xl tracking-wide mb-2">Recuperar senha</h1>
+                <p className="text-sm mb-6" style={{ color: C.textDim }}>Informe seu e-mail e enviaremos um link pra você criar uma nova senha.</p>
+                {resetSent ? (
+                  <div className="rounded-lg border p-4 text-sm text-center mb-4" style={{ background: `${C.green}14`, borderColor: `${C.green}44`, color: C.green }}>
+                    Se esse e-mail estiver cadastrado, você vai receber um link em alguns minutos. Confira também a caixa de spam.
+                  </div>
+                ) : (
+                  <>
+                    <AuthInput type="email" placeholder="E-mail" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
+                    {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+                    <button onClick={handleForgotPassword} disabled={authLoading} className="w-full py-3 rounded-lg font-semibold text-sm mb-3" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
+                      {authLoading ? "Aguarde..." : "Enviar link de recuperação"}
+                    </button>
+                  </>
+                )}
+                <button onClick={closeForgotPassword} className="text-xs underline block mx-auto" style={{ color: C.textMuted }}>Voltar ao login</button>
+              </>
+            ) : (
+              <>
+                <h1 className="font-display text-2xl tracking-wide mb-2">Área Administrativa</h1>
+                <p className="text-sm mb-6" style={{ color: C.textDim }}>Entre com uma conta de administrador.</p>
 
-            {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+                <AuthInput type="email" placeholder="E-mail" value={authForm.email} onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })} />
+                <AuthInput type="password" placeholder="Senha" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()} />
+                <button onClick={openForgotPassword} className="text-xs underline block mb-3" style={{ color: C.textMuted }}>Esqueci minha senha</button>
 
-            <button onClick={handleAdminLogin} disabled={authLoading} className="w-full rounded-lg px-4 py-3 font-semibold text-sm transition-colors hover:brightness-110 flex items-center justify-center gap-2" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
-              <LogIn size={16} /> {authLoading ? "Aguarde..." : "Entrar"}
-            </button>
-            <div className="text-[11px] mt-4 leading-relaxed" style={{ color: C.textDim }}>Ainda não tem conta? Crie uma pela Área do Aluno primeiro, depois peça pra ser promovido a administrador.</div>
-            <button onClick={goLanding} className="text-xs mt-4 underline underline-offset-2" style={{ color: C.textMuted }}>Voltar</button>
+                {authError && <div className="text-xs mb-3" style={{ color: C.red }}>{authError}</div>}
+
+                <button onClick={handleAdminLogin} disabled={authLoading} className="w-full rounded-lg px-4 py-3 font-semibold text-sm transition-colors hover:brightness-110 flex items-center justify-center gap-2" style={{ background: C.blue, color: "#fff", opacity: authLoading ? 0.7 : 1 }}>
+                  <LogIn size={16} /> {authLoading ? "Aguarde..." : "Entrar"}
+                </button>
+                <div className="text-[11px] mt-4 leading-relaxed" style={{ color: C.textDim }}>Ainda não tem conta? Crie uma pela Área do Aluno primeiro, depois peça pra ser promovido a administrador.</div>
+                <button onClick={goLanding} className="text-xs mt-4 underline underline-offset-2" style={{ color: C.textMuted }}>Voltar</button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -2736,6 +2851,8 @@ export default function REDEApp() {
       )}
 
       {toast && <Toast toast={toast} />}
+      </>
+      )}
     </div>
   );
 }
