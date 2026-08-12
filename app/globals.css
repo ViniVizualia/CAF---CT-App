@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/*
+  Tokens de tema, espelhando lib/design-tokens.ts.
+  Tailwind v4 usa configuração via CSS (@theme), não mais tailwind.config.js.
+  Valores de marca ainda são provisórios — ver comentário em design-tokens.ts.
+*/
+@theme {
+  --color-background: #0b0f14;
+  --color-surface: #141a21;
+  --color-primary: #2e6f6a;
+  --color-accent: #c9a227;
+  --color-text-primary: #f5f7fa;
+  --color-text-muted: #8b98a5;
+  --color-danger: #b3261e;
+  --color-success: #2e7d32;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --font-display: "Inter", system-ui, sans-serif; /* TODO: fonte oficial */
+  --font-body: "Inter", system-ui, sans-serif; /* TODO: fonte oficial */
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
