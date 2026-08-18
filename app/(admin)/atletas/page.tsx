@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
 const statusLabel: Record<string, string> = {
   em_analise: 'Em análise', ativo: 'Ativo', rejeitado: 'Rejeitado', bloqueado: 'Bloqueado', inativo: 'Inativo',
 }
