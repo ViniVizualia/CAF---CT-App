@@ -12,6 +12,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "@supabase/ssr": "latest",
+    "qrcode.react": "latest",
     "@supabase/supabase-js": "latest"
   },
   "devDependencies": {
