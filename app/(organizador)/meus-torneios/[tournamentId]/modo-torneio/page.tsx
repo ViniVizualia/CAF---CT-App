@@ -18,7 +18,7 @@ export default async function ModoTorneioPage({ params }: { params: Promise<{ to
     <main className="min-h-screen px-6 py-10 max-w-md mx-auto">
       <a href={`/meus-torneios/${tournamentId}`} className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
       <h1 className="text-2xl font-semibold mt-4 mb-6">{tournament.name}</h1>
-      <TorneioMode tournamentId={tournamentId} organizerId={user.id} />
+      <TorneioMode tournamentId={tournamentId} tournamentName={tournament.name} organizerId={user.id} />
     </main>
   )
 }
