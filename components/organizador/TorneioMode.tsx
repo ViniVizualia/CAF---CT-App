@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
 import { createClient } from '@/lib/supabase/client'
+import { prepareTournamentOffline, getTournamentMeta } from '@/lib/offline/snapshot'
+import type { TournamentMeta } from '@/lib/offline/db'
 
 type View = 'hub' | 'scanner' | 'busca' | 'validacao' | 'historico'
 type ResultStatus = 'liberado' | 'vencido' | 'bloqueado' | 'nao_encontrado'
@@ -49,7 +51,12 @@ const resultColor: Record<ResultStatus, string> = {
   nao_encontrado: 'var(--color-text-muted)',
 }
 
-export function TorneioMode({ tournamentId, organizerId }: { tournamentId: string; organizerId: string }) {
+function formatDateTime(iso: string) {
+  const d = new Date(iso)
+  return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+}
+
+export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tournamentId: string; tournamentName: string; organizerId: string }) {
   const [view, setView] = useState<View>('hub')
   const [result, setResult] = useState<AthleteResult | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -58,10 +65,45 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [isOnline, setIsOnline] = useState(true)
+  const [offlineMeta, setOfflineMeta] = useState<TournamentMeta | undefined>(undefined)
+  const [preparing, setPreparing] = useState(false)
+  const [prepareError, setPrepareError] = useState<string | null>(null)
+
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanningRef = useRef(false)
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const goOnline = () => setIsOnline(true)
+    const goOffline = () => setIsOnline(false)
+    window.addEventListener('online', goOnline)
+    window.addEventListener('offline', goOffline)
+    return () => {
+      window.removeEventListener('online', goOnline)
+      window.removeEventListener('offline', goOffline)
+    }
+  }, [])
+
+  useEffect(() => {
+    getTournamentMeta(tournamentId).then(setOfflineMeta)
+  }, [tournamentId])
+
+  async function handlePrepareOffline() {
+    setPreparing(true)
+    setPrepareError(null)
+    try {
+      await prepareTournamentOffline(tournamentId, tournamentName)
+      const meta = await getTournamentMeta(tournamentId)
+      setOfflineMeta(meta)
+    } catch (e) {
+      setPrepareError(e instanceof Error ? e.message : 'Falha ao preparar torneio offline.')
+    } finally {
+      setPreparing(false)
+    }
+  }
 
   async function lookupByToken(token: string) {
     setLoading(true)
@@ -221,13 +263,38 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
     setView('hub')
   }
 
+  const statusBar = (() => {
+    if (isOnline) return { text: 'ONLINE', color: 'var(--color-success)' }
+    if (offlineMeta) return { text: 'OFFLINE — UTILIZANDO BASE LOCAL', color: '#B45309' }
+    return { text: 'BASE OFFLINE NÃO PREPARADA', color: 'var(--color-danger)' }
+  })()
+
+  let content: React.ReactNode = null
+
   if (view === 'hub') {
-    return (
+    content = (
       <div className="flex flex-col gap-4">
-        <div className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-2 text-xs text-[var(--color-text-muted)] flex justify-between">
-          <span>ONLINE</span>
-          <span>Modo offline chega na próxima etapa</span>
+        <div className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3">
+          <p className="text-sm font-medium mb-1">{tournamentName}</p>
+          {offlineMeta ? (
+            <>
+              <p className="text-xs text-[var(--color-text-muted)]">{offlineMeta.athleteCount} atletas · fotos disponíveis offline</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Última sincronização: {formatDateTime(offlineMeta.snapshotGeneratedAt)}</p>
+            </>
+          ) : (
+            <p className="text-xs text-[var(--color-text-muted)]">Ainda não preparado para uso offline.</p>
+          )}
+          {prepareError && <p className="text-xs text-[var(--color-danger)] mt-1">{prepareError}</p>}
+          <button
+            onClick={handlePrepareOffline}
+            disabled={preparing || !isOnline}
+            className="w-full mt-3 rounded-[var(--radius-sm)] border border-white/15 py-2 text-sm font-medium disabled:opacity-60"
+          >
+            {preparing ? 'Preparando...' : offlineMeta ? 'Atualizar dados offline' : 'Preparar Torneio Offline'}
+          </button>
+          {!isOnline && <p className="text-xs text-[var(--color-text-muted)] mt-2">Conecte-se à internet para preparar ou atualizar.</p>}
         </div>
+
         <button onClick={startScanner} className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-5 text-lg font-medium">
           Escanear Carteirinha
         </button>
@@ -239,10 +306,8 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
         </button>
       </div>
     )
-  }
-
-  if (view === 'scanner') {
-    return (
+  } else if (view === 'scanner') {
+    content = (
       <div className="flex flex-col gap-4">
         <video ref={videoRef} className="w-full rounded-[var(--radius-md)] bg-black" muted playsInline />
         <canvas ref={canvasRef} className="hidden" />
@@ -250,10 +315,8 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
         <button onClick={backToHub} className="rounded-[var(--radius-md)] border border-white/15 py-3 font-medium">Cancelar</button>
       </div>
     )
-  }
-
-  if (view === 'busca') {
-    return (
+  } else if (view === 'busca') {
+    content = (
       <div className="flex flex-col gap-4">
         <input
           autoFocus
@@ -272,10 +335,8 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
         <button onClick={backToHub} className="text-sm text-[var(--color-text-muted)] underline">Cancelar</button>
       </div>
     )
-  }
-
-  if (view === 'validacao' && result) {
-    return (
+  } else if (view === 'validacao' && result) {
+    content = (
       <div className="flex flex-col items-center gap-4 text-center">
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -299,10 +360,8 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
         </button>
       </div>
     )
-  }
-
-  if (view === 'historico') {
-    return (
+  } else if (view === 'historico') {
+    content = (
       <div className="flex flex-col gap-3">
         <h2 className="text-lg font-medium">Histórico de validações</h2>
         {history.map((h) => (
@@ -324,5 +383,15 @@ export function TorneioMode({ tournamentId, organizerId }: { tournamentId: strin
     )
   }
 
-  return null
+  return (
+    <div className="flex flex-col gap-4">
+      <div
+        className="rounded-[var(--radius-sm)] px-4 py-2 text-xs font-semibold text-center"
+        style={{ backgroundColor: statusBar.color, color: 'white' }}
+      >
+        {statusBar.text}
+      </div>
+      {content}
+    </div>
+  )
 }
