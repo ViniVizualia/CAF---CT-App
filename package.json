@@ -12,9 +12,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
     "qrcode.react": "latest",
-    "@supabase/supabase-js": "latest"
     "jsqr": "latest",
+    "dexie": "latest"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
