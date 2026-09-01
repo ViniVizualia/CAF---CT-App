@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
 import { createClient } from '@/lib/supabase/client'
 import { prepareTournamentOffline, getTournamentMeta } from '@/lib/offline/snapshot'
-import type { TournamentMeta } from '@/lib/offline/db'
+import { syncPendingScanLogs, countPendingScanLogs } from '@/lib/offline/sync'
+import { offlineDB, type TournamentMeta, type AthleteSnapshot } from '@/lib/offline/db'
 
 type View = 'hub' | 'scanner' | 'busca' | 'validacao' | 'historico'
 type ResultStatus = 'liberado' | 'vencido' | 'bloqueado' | 'nao_encontrado'
@@ -16,7 +17,6 @@ interface AthleteResult {
   category_name: string | null
   status: string | null
   validity_date: string | null
-  thumbnail_path: string | null
   resultStatus: ResultStatus
 }
 
@@ -69,6 +69,8 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   const [offlineMeta, setOfflineMeta] = useState<TournamentMeta | undefined>(undefined)
   const [preparing, setPreparing] = useState(false)
   const [prepareError, setPrepareError] = useState<string | null>(null)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [syncing, setSyncing] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -89,7 +91,21 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
 
   useEffect(() => {
     getTournamentMeta(tournamentId).then(setOfflineMeta)
+    countPendingScanLogs(tournamentId).then(setPendingCount)
   }, [tournamentId])
+
+  useEffect(() => {
+    if (isOnline) handleSync()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline])
+
+  async function handleSync() {
+    setSyncing(true)
+    await syncPendingScanLogs(tournamentId)
+    const remaining = await countPendingScanLogs(tournamentId)
+    setPendingCount(remaining)
+    setSyncing(false)
+  }
 
   async function handlePrepareOffline() {
     setPreparing(true)
@@ -105,48 +121,45 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
     }
   }
 
-  async function lookupByToken(token: string) {
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('tournament_athletes_public')
-      .select('*')
-      .eq('tournament_id', tournamentId)
-      .eq('public_token', token)
-      .maybeSingle()
-
-    await handleLookupResult(data)
+  async function finalizeResult(athleteResult: AthleteResult, method: 'qr' | 'manual') {
+    setResult(athleteResult)
+    await logScan(athleteResult, method)
+    setLoading(false)
+    setView('validacao')
   }
 
-  async function lookupByText(text: string) {
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const asNumber = Number(text)
-    let query = supabase.from('tournament_athletes_public').select('*').eq('tournament_id', tournamentId)
-    query = !isNaN(asNumber) && text.trim() !== ''
-      ? query.eq('caf_number', asNumber)
-      : query.ilike('full_name', `%${text}%`)
+  async function logScan(athleteResult: AthleteResult, method: 'qr' | 'manual') {
+    const clientEventId = crypto.randomUUID()
+    const scannedAt = new Date().toISOString()
 
-    const { data } = await query.limit(1).maybeSingle()
-    await handleLookupResult(data)
+    if (isOnline) {
+      const supabase = createClient()
+      const { error } = await supabase.from('scan_logs').insert({
+        client_event_id: clientEventId,
+        tournament_id: tournamentId,
+        athlete_id: athleteResult.athlete_id,
+        organizer_profile_id: organizerId,
+        scanned_at: scannedAt,
+        method,
+        result_status: athleteResult.resultStatus,
+      })
+      if (error) setError('Validação exibida, mas o registro no histórico falhou: ' + error.message)
+    } else {
+      await offlineDB.pendingScanLogs.put({
+        clientEventId, tournamentId, athleteId: athleteResult.athlete_id,
+        organizerProfileId: organizerId, scannedAt, method, resultStatus: athleteResult.resultStatus,
+      })
+      setPendingCount((c) => c + 1)
+    }
   }
 
-  async function handleLookupResult(data: any) {
+  async function handleOnlineResult(data: any, method: 'qr' | 'manual') {
     const resultStatus = computeResultStatus(data)
     const athleteResult: AthleteResult = {
-      athlete_id: data?.athlete_id ?? null,
-      full_name: data?.full_name ?? 'Atleta não encontrado',
-      caf_number: data?.caf_number ?? null,
-      category_name: data?.category_name ?? null,
-      status: data?.status ?? null,
-      validity_date: data?.validity_date ?? null,
-      thumbnail_path: data?.thumbnail_path ?? null,
-      resultStatus,
+      athlete_id: data?.athlete_id ?? null, full_name: data?.full_name ?? 'Atleta não encontrado',
+      caf_number: data?.caf_number ?? null, category_name: data?.category_name ?? null,
+      status: data?.status ?? null, validity_date: data?.validity_date ?? null, resultStatus,
     }
-    setResult(athleteResult)
-
     if (data?.thumbnail_path) {
       const supabase = createClient()
       const { data: signed } = await supabase.storage.from('athlete-thumbnails').createSignedUrl(data.thumbnail_path, 600)
@@ -154,24 +167,51 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
     } else {
       setPhotoUrl(null)
     }
-
-    await logScan(athleteResult, data ? 'qr' : 'manual')
-    setLoading(false)
-    setView('validacao')
+    await finalizeResult(athleteResult, method)
   }
 
-  async function logScan(athleteResult: AthleteResult, method: 'qr' | 'manual') {
-    const supabase = createClient()
-    const { error } = await supabase.from('scan_logs').insert({
-      client_event_id: crypto.randomUUID(),
-      tournament_id: tournamentId,
-      athlete_id: athleteResult.athlete_id,
-      organizer_profile_id: organizerId,
-      scanned_at: new Date().toISOString(),
-      method,
-      result_status: athleteResult.resultStatus,
-    })
-    if (error) setError('Validação exibida, mas o registro no histórico falhou: ' + error.message)
+  async function handleOfflineResult(local: AthleteSnapshot | null, method: 'qr' | 'manual') {
+    const resultStatus = computeResultStatus(local ? { status: local.status, validity_date: local.validityDate } : null)
+    const athleteResult: AthleteResult = {
+      athlete_id: local?.athleteId ?? null, full_name: local?.fullName ?? 'Atleta não encontrado',
+      caf_number: local?.cafNumber ?? null, category_name: local?.categoryName ?? null,
+      status: local?.status ?? null, validity_date: local?.validityDate ?? null, resultStatus,
+    }
+    setPhotoUrl(local?.thumbnailBlob ? URL.createObjectURL(local.thumbnailBlob) : null)
+    await finalizeResult(athleteResult, method)
+  }
+
+  async function lookupByToken(token: string) {
+    setLoading(true)
+    setError(null)
+    if (isOnline) {
+      const supabase = createClient()
+      const { data } = await supabase.from('tournament_athletes_public').select('*')
+        .eq('tournament_id', tournamentId).eq('public_token', token).maybeSingle()
+      await handleOnlineResult(data, 'qr')
+    } else {
+      const local = await offlineDB.athletesSnapshot.get(token)
+      await handleOfflineResult(local && local.tournamentId === tournamentId ? local : null, 'qr')
+    }
+  }
+
+  async function lookupByText(text: string) {
+    setLoading(true)
+    setError(null)
+    const asNumber = Number(text)
+    if (isOnline) {
+      const supabase = createClient()
+      let query = supabase.from('tournament_athletes_public').select('*').eq('tournament_id', tournamentId)
+      query = !isNaN(asNumber) && text.trim() !== '' ? query.eq('caf_number', asNumber) : query.ilike('full_name', `%${text}%`)
+      const { data } = await query.limit(1).maybeSingle()
+      await handleOnlineResult(data, 'manual')
+    } else {
+      const all = await offlineDB.athletesSnapshot.where('tournamentId').equals(tournamentId).toArray()
+      const local = !isNaN(asNumber) && text.trim() !== ''
+        ? all.find((a) => a.cafNumber === asNumber)
+        : all.find((a) => a.fullName.toLowerCase().includes(text.toLowerCase()))
+      await handleOfflineResult(local ?? null, 'manual')
+    }
   }
 
   async function startScanner() {
@@ -180,10 +220,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
-      }
+      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play() }
       scanningRef.current = true
       requestAnimationFrame(scanFrame)
     } catch (e) {
@@ -224,29 +261,19 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   async function loadHistory() {
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase
-      .from('scan_logs')
-      .select('id, scanned_at, method, result_status, athlete_id')
-      .eq('tournament_id', tournamentId)
-      .order('scanned_at', { ascending: false })
-      .limit(30)
+    const { data } = await supabase.from('scan_logs').select('id, scanned_at, method, result_status, athlete_id')
+      .eq('tournament_id', tournamentId).order('scanned_at', { ascending: false }).limit(30)
 
     const athleteIds = [...new Set((data ?? []).map((r) => r.athlete_id).filter(Boolean))]
     let namesMap = new Map<string, { full_name: string; caf_number: number | null }>()
     if (athleteIds.length > 0) {
-      const { data: athletesData } = await supabase
-        .from('tournament_athletes_public')
-        .select('athlete_id, full_name, caf_number')
-        .eq('tournament_id', tournamentId)
-        .in('athlete_id', athleteIds)
+      const { data: athletesData } = await supabase.from('tournament_athletes_public')
+        .select('athlete_id, full_name, caf_number').eq('tournament_id', tournamentId).in('athlete_id', athleteIds)
       for (const a of athletesData ?? []) namesMap.set(a.athlete_id, { full_name: a.full_name, caf_number: a.caf_number })
     }
 
     setHistory((data ?? []).map((r) => ({
-      id: r.id,
-      scanned_at: r.scanned_at,
-      method: r.method,
-      result_status: r.result_status,
+      id: r.id, scanned_at: r.scanned_at, method: r.method, result_status: r.result_status,
       full_name: r.athlete_id ? namesMap.get(r.athlete_id)?.full_name ?? null : null,
       caf_number: r.athlete_id ? namesMap.get(r.athlete_id)?.caf_number ?? null : null,
     })))
@@ -285,15 +312,21 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
             <p className="text-xs text-[var(--color-text-muted)]">Ainda não preparado para uso offline.</p>
           )}
           {prepareError && <p className="text-xs text-[var(--color-danger)] mt-1">{prepareError}</p>}
-          <button
-            onClick={handlePrepareOffline}
-            disabled={preparing || !isOnline}
-            className="w-full mt-3 rounded-[var(--radius-sm)] border border-white/15 py-2 text-sm font-medium disabled:opacity-60"
-          >
+          <button onClick={handlePrepareOffline} disabled={preparing || !isOnline}
+            className="w-full mt-3 rounded-[var(--radius-sm)] border border-white/15 py-2 text-sm font-medium disabled:opacity-60">
             {preparing ? 'Preparando...' : offlineMeta ? 'Atualizar dados offline' : 'Preparar Torneio Offline'}
           </button>
           {!isOnline && <p className="text-xs text-[var(--color-text-muted)] mt-2">Conecte-se à internet para preparar ou atualizar.</p>}
         </div>
+
+        {pendingCount > 0 && (
+          <div className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3 flex justify-between items-center text-sm">
+            <span>{pendingCount} validações pendentes de sincronizar</span>
+            <button onClick={handleSync} disabled={!isOnline || syncing} className="text-[var(--color-primary)] underline disabled:opacity-50 disabled:no-underline">
+              {syncing ? 'Sincronizando...' : 'Sincronizar agora'}
+            </button>
+          </div>
+        )}
 
         <button onClick={startScanner} className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-5 text-lg font-medium">
           Escanear Carteirinha
@@ -318,18 +351,10 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   } else if (view === 'busca') {
     content = (
       <div className="flex flex-col gap-4">
-        <input
-          autoFocus
-          placeholder="Nome ou número CAF"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-3"
-        />
-        <button
-          onClick={() => lookupByText(searchText)}
-          disabled={loading || !searchText.trim()}
-          className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-3 font-medium disabled:opacity-60"
-        >
+        <input autoFocus placeholder="Nome ou número CAF" value={searchText} onChange={(e) => setSearchText(e.target.value)}
+          className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-3" />
+        <button onClick={() => lookupByText(searchText)} disabled={loading || !searchText.trim()}
+          className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-3 font-medium disabled:opacity-60">
           {loading ? 'Buscando...' : 'Buscar'}
         </button>
         <button onClick={backToHub} className="text-sm text-[var(--color-text-muted)] underline">Cancelar</button>
@@ -352,7 +377,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
           {resultLabel[result.resultStatus]}
         </p>
         <p className="text-xs text-[var(--color-text-muted)]">
-          Base atualizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}
+          Base {isOnline ? 'em tempo real' : `atualizada em ${offlineMeta ? formatDateTime(offlineMeta.snapshotGeneratedAt) : '—'}`}
         </p>
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
         <button onClick={backToHub} className="w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-3 font-medium mt-4">
@@ -385,13 +410,8 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className="rounded-[var(--radius-sm)] px-4 py-2 text-xs font-semibold text-center"
-        style={{ backgroundColor: statusBar.color, color: 'white' }}
-      >
+      <div className="rounded-[var(--radius-sm)] px-4 py-2 text-xs font-semibold text-center" style={{ backgroundColor: statusBar.color, color: 'white' }}>
         {statusBar.text}
       </div>
       {content}
-    </div>
-  )
-}
+    
