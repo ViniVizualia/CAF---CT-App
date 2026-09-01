@@ -14,6 +14,7 @@
     "@supabase/ssr": "latest",
     "qrcode.react": "latest",
     "@supabase/supabase-js": "latest"
+    "jsqr": "latest",
   },
   "devDependencies": {
     "typescript": "^5.7.0",
