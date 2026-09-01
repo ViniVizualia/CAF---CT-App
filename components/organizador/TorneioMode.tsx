@@ -414,4 +414,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
         {statusBar.text}
       </div>
       {content}
-    
+          </div>
+    )
+  }
+
