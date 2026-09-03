@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/client'
 import { offlineDB } from './db'
 
-export async function prepareTournamentOffline(tournamentId: string, tournamentName: string) {
+const OFFLINE_BUFFER_DAYS = 1
+
+export async function prepareTournamentOffline(tournamentId: string, tournamentName: string, tournamentEndDate: string) {
   const supabase = createClient()
 
   const { data: athletes, error } = await supabase
@@ -36,11 +38,16 @@ export async function prepareTournamentOffline(tournamentId: string, tournamentN
     })
   }
 
+  const expires = new Date(tournamentEndDate)
+  expires.setDate(expires.getDate() + OFFLINE_BUFFER_DAYS)
+  expires.setHours(23, 59, 59, 999)
+
   await offlineDB.tournamentMeta.put({
     tournamentId,
     name: tournamentName,
     snapshotGeneratedAt: new Date().toISOString(),
     athleteCount: (athletes ?? []).length,
+    offlineExpiresAt: expires.toISOString(),
   })
 
   return (athletes ?? []).length
