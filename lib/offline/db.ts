@@ -5,6 +5,7 @@ export interface TournamentMeta {
   name: string
   snapshotGeneratedAt: string
   athleteCount: number
+  offlineExpiresAt: string
 }
 
 export interface AthleteSnapshot {
