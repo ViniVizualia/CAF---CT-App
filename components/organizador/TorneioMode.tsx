@@ -56,7 +56,7 @@ function formatDateTime(iso: string) {
   return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
 }
 
-export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tournamentId: string; tournamentName: string; organizerId: string }) {
+export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, organizerId }: { tournamentId: string; tournamentName: string; tournamentEndDate: string; organizerId: string }) {
   const [view, setView] = useState<View>('hub')
   const [result, setResult] = useState<AthleteResult | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -76,6 +76,9 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanningRef = useRef(false)
+
+  const offlineExpired = offlineMeta ? new Date() > new Date(offlineMeta.offlineExpiresAt) : false
+  const offlineBlocked = !isOnline && (!offlineMeta || offlineExpired)
 
   useEffect(() => {
     setIsOnline(navigator.onLine)
@@ -111,7 +114,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
     setPreparing(true)
     setPrepareError(null)
     try {
-      await prepareTournamentOffline(tournamentId, tournamentName)
+      await prepareTournamentOffline(tournamentId, tournamentName, tournamentEndDate)
       const meta = await getTournamentMeta(tournamentId)
       setOfflineMeta(meta)
     } catch (e) {
@@ -182,6 +185,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   }
 
   async function lookupByToken(token: string) {
+    if (offlineBlocked) { setError('Sessão offline expirada ou não preparada.'); return }
     setLoading(true)
     setError(null)
     if (isOnline) {
@@ -196,6 +200,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   }
 
   async function lookupByText(text: string) {
+    if (offlineBlocked) { setError('Sessão offline expirada ou não preparada.'); return }
     setLoading(true)
     setError(null)
     const asNumber = Number(text)
@@ -215,6 +220,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
   }
 
   async function startScanner() {
+    if (offlineBlocked) return
     setView('scanner')
     setError(null)
     try {
@@ -292,7 +298,8 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
 
   const statusBar = (() => {
     if (isOnline) return { text: 'ONLINE', color: 'var(--color-success)' }
-    if (offlineMeta) return { text: 'OFFLINE — UTILIZANDO BASE LOCAL', color: '#B45309' }
+    if (offlineMeta && !offlineExpired) return { text: 'OFFLINE — UTILIZANDO BASE LOCAL', color: '#B45309' }
+    if (offlineMeta && offlineExpired) return { text: 'SESSÃO OFFLINE EXPIRADA — CONECTE-SE', color: 'var(--color-danger)' }
     return { text: 'BASE OFFLINE NÃO PREPARADA', color: 'var(--color-danger)' }
   })()
 
@@ -307,6 +314,7 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
             <>
               <p className="text-xs text-[var(--color-text-muted)]">{offlineMeta.athleteCount} atletas · fotos disponíveis offline</p>
               <p className="text-xs text-[var(--color-text-muted)]">Última sincronização: {formatDateTime(offlineMeta.snapshotGeneratedAt)}</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Acesso offline válido até: {formatDateTime(offlineMeta.offlineExpiresAt)}</p>
             </>
           ) : (
             <p className="text-xs text-[var(--color-text-muted)]">Ainda não preparado para uso offline.</p>
@@ -328,12 +336,17 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
           </div>
         )}
 
-        <button onClick={startScanner} className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-5 text-lg font-medium">
+        <button onClick={startScanner} disabled={offlineBlocked} className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-5 text-lg font-medium disabled:opacity-60">
           Escanear Carteirinha
         </button>
-        <button onClick={() => setView('busca')} className="rounded-[var(--radius-md)] border border-white/15 py-4 font-medium">
+        <button onClick={() => setView('busca')} disabled={offlineBlocked} className="rounded-[var(--radius-md)] border border-white/15 py-4 font-medium disabled:opacity-60">
           Buscar Atleta
         </button>
+        {offlineBlocked && (
+          <p className="text-xs text-[var(--color-danger)] text-center">
+            {offlineExpired ? 'A sessão offline deste torneio expirou. Conecte-se à internet para continuar.' : 'Prepare o torneio para uso offline enquanto ainda há conexão.'}
+          </p>
+        )}
         <button onClick={loadHistory} className="text-sm text-[var(--color-text-muted)] underline mt-2">
           Ver histórico de validações
         </button>
@@ -414,7 +427,6 @@ export function TorneioMode({ tournamentId, tournamentName, organizerId }: { tou
         {statusBar.text}
       </div>
       {content}
-          </div>
-    )
-  }
-
+    </div>
+  )
+}
