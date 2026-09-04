@@ -4,7 +4,7 @@ export default function SplashPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-10 px-6 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo-full.png" alt="CAF — Cadastro do Atleta de Futevôlei" className="w-48" />
+      <img src="/IMG_0347.png" alt="CAF — Cadastro do Atleta de Futevôlei" className="w-48" />
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Link
