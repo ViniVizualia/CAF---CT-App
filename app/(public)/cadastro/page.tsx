@@ -110,6 +110,9 @@ export default function CadastroPage() {
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-md mx-auto">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/IMG_0348.png" alt="CAF" className="w-14 mb-4" />
+
       <h1 className="text-2xl font-semibold mb-1">Criar meu cadastro CAF</h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
         Depois de enviado, seu cadastro fica em análise até ser aprovado.
