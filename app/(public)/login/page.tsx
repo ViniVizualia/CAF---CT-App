@@ -45,6 +45,9 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex flex-col justify-center px-6 max-w-sm mx-auto gap-6">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/IMG_0348.png" alt="CAF" className="w-16 mx-auto" />
+
       <div>
         <h1 className="text-2xl font-semibold">Entrar</h1>
         <p className="text-sm text-[var(--color-text-muted)] mt-1">Acesse sua conta CAF</p>
