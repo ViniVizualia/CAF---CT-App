@@ -4,6 +4,7 @@ import { AreaNav } from '@/components/nav/AreaNav'
 const items = [
   { label: 'Home', href: '/home' },
   { label: 'Carteirinha', href: '/carteirinha' },
+  { label: 'Loja', href: '/loja' },
   { label: 'Perfil', href: '/perfil' },
 ]
 
