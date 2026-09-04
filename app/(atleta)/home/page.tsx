@@ -51,8 +51,9 @@ export default async function HomePage() {
     <main className="min-h-screen flex flex-col items-center px-6 py-10 gap-6">
       <div className="text-center">
         <p className="text-sm text-[var(--color-text-muted)]">Olá,</p>
-        <h1 className="text-xl font-semibold">{athlete.full_name.split(' ')[0]}</h1>
+        <h1 className="text-2xl font-semibold">{athlete.full_name.split(' ')[0]}</h1>
       </div>
+
       <AthleteCard
         fullName={athlete.full_name}
         cafNumber={athlete.caf_number}
@@ -62,6 +63,13 @@ export default async function HomePage() {
         publicToken={athlete.public_token}
         photoUrl={photoUrl}
       />
+
+      <Link
+        href="/perfil"
+        className="w-full max-w-sm text-center rounded-[var(--radius-md)] border border-[var(--color-accent)]/40 text-[var(--color-accent)] py-3 font-medium"
+      >
+        Ver meu perfil
+      </Link>
     </main>
   )
 }
