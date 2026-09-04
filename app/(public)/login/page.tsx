@@ -18,14 +18,29 @@ export default function LoginPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-    setLoading(false)
     if (error) {
+      setLoading(false)
       setError('E-mail ou senha incorretos.')
       return
     }
-    router.push('/home')
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    setLoading(false)
+
+    if (profile?.role === 'super_admin') {
+      router.push('/dashboard')
+    } else if (profile?.role === 'organizer') {
+      router.push('/meus-torneios')
+    } else {
+      router.push('/home')
+    }
   }
 
   return (
