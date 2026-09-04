@@ -3,10 +3,8 @@ import Link from "next/link";
 export default function SplashPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-10 px-6 text-center">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">CAF</h1>
-        <p className="text-[var(--color-text-muted)] mt-1">Cadastro do Atleta de Futevôlei</p>
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo-full.png" alt="CAF — Cadastro do Atleta de Futevôlei" className="w-48" />
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Link
@@ -22,11 +20,6 @@ export default function SplashPage() {
           Criar meu cadastro CAF
         </Link>
       </div>
-
-      <p className="text-xs text-[var(--color-text-muted)] max-w-xs">
-        Visual provisório — Etapa 1 (fundação). A identidade oficial entra quando você
-        enviar logo, fontes e paleta.
-      </p>
     </main>
   );
 }
