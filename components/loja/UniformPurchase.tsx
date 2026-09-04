@@ -21,7 +21,7 @@ export function UniformPurchase() {
   return (
     <div className="flex flex-col gap-6">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/SEU_ARQUIVO_AQUI.png" alt="Uniforme oficial CAF" className="w-full rounded-[var(--radius-md)] bg-white p-4" />
+      <img src="/IMG_0351.png" alt="Uniforme oficial CAF" className="w-full rounded-[var(--radius-md)] bg-white p-4" />
 
       <div>
         <h1 className="text-xl font-semibold">Uniforme Oficial CAF</h1>
