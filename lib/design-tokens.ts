@@ -1,27 +1,24 @@
 /**
  * Arquitetura central de design tokens do CAF.
- *
- * IMPORTANTE: os valores de marca abaixo (cores, fontes) são PROVISÓRIOS,
- * escolhidos só para o app não ficar sem estilo nesta fase de fundação.
- * Quando a logo oficial, a paleta HEX e as fontes forem definidas, troque
- * os valores aqui (e no @theme de app/globals.css) — o resto do app
- * consome essas duas fontes, nunca cor "hardcoded" direto no componente.
+ * Cores oficiais aplicadas a partir da identidade visual enviada.
+ * Fonte ainda é PLACEHOLDER (Poppins) até o arquivo da "Fb Sports" chegar.
  */
 
 export const colors = {
-  background: "#0B0F14", // TODO: cor oficial de fundo
-  surface: "#141A21", // TODO
-  primary: "#2E6F6A", // TODO — verde petróleo provisório
-  accent: "#C9A227", // TODO — dourado provisório (reservado para "premium")
+  background: "#0B0F14",
+  surface: "#141A21",
+  primary: "#11378E", // azul oficial CAF
+  accent: "#EBBA36", // dourado/amarelo oficial CAF
+  brandGreen: "#0C511A", // verde oficial CAF
   textPrimary: "#F5F7FA",
   textMuted: "#8B98A5",
   danger: "#B3261E",
-  success: "#2E7D32",
+  success: "#0C511A", // reaproveita o verde oficial como "ativo"
 } as const;
 
 export const fonts = {
-  display: "var(--font-display)", // TODO: fonte oficial de display
-  body: "var(--font-body)", // TODO: fonte oficial de texto
+  display: "var(--font-display)", // TODO: trocar por Fb Sports quando o arquivo chegar
+  body: "var(--font-body)", // TODO: trocar por Fb Sports quando o arquivo chegar
 } as const;
 
 export const spacing = {
@@ -42,16 +39,9 @@ export const borderRadius = {
 
 export const shadows = {
   card: "0 2px 12px rgba(0,0,0,0.35)",
-  premium: "0 4px 24px rgba(201,162,39,0.25)", // usado nas carteirinhas Amador A / Qualifier
+  premium: "0 4px 24px rgba(235,186,54,0.3)", // dourado oficial
 } as const;
 
-/**
- * Categorias oficiais do CAF, na ordem definida no escopo do produto.
- * O gradiente de cada categoria é uma primeira aproximação da direção
- * pedida (prata → dourado premium) — ajustar quando a paleta oficial
- * chegar, mas a ORDEM e as CHAVES devem se manter estáveis, pois o
- * banco (tabela categories) referencia esse mesmo style_key.
- */
 export type CategoryKey =
   | "estreante"
   | "iniciante"
@@ -68,14 +58,15 @@ interface CategoryStyle {
   textOnCard: string;
 }
 
+// Progressão construída a partir das 3 cores oficiais: neutro → azul → verde → dourado
 export const categoryStyles: Record<CategoryKey, CategoryStyle> = {
-  estreante: { label: "Estreante", order: 1, gradient: ["#C7CCD1", "#9AA3AB"], textOnCard: "#12161A" },
-  iniciante: { label: "Iniciante", order: 2, gradient: ["#6E8CA0", "#3F5A6B"], textOnCard: "#F5F7FA" },
-  intermediario: { label: "Intermediário", order: 3, gradient: ["#2E6F6A", "#184A46"], textOnCard: "#F5F7FA" },
-  amador_c: { label: "Amador C", order: 4, gradient: ["#2E8B57", "#1C5A38"], textOnCard: "#F5F7FA" },
-  amador_b: { label: "Amador B", order: 5, gradient: ["#1B2A4A", "#0D1830"], textOnCard: "#F5F7FA" },
+  estreante: { label: "Estreante", order: 1, gradient: ["#D8DCE0", "#AEB4BB"], textOnCard: "#12161A" },
+  iniciante: { label: "Iniciante", order: 2, gradient: ["#7FA0C9", "#3D5C87"], textOnCard: "#F5F7FA" },
+  intermediario: { label: "Intermediário", order: 3, gradient: ["#3E8E5C", "#1F5E3A"], textOnCard: "#F5F7FA" },
+  amador_c: { label: "Amador C", order: 4, gradient: ["#1E7A3E", "#0C511A"], textOnCard: "#F5F7FA" },
+  amador_b: { label: "Amador B", order: 5, gradient: ["#1B2F5E", "#0A1730"], textOnCard: "#F5F7FA" },
   amador_a: { label: "Amador A", order: 6, gradient: ["#2B2B2E", "#0E0E10"], textOnCard: "#F5F7FA" },
-  qualifier: { label: "Qualifier", order: 7, gradient: ["#D4AF37", "#8C6D1F"], textOnCard: "#151107" },
+  qualifier: { label: "Qualifier", order: 7, gradient: ["#F4D374", "#EBBA36"], textOnCard: "#151107" },
 };
 
 export const orderedCategories: CategoryKey[] = (
