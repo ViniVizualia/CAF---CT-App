@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TournamentAssignments } from '@/components/admin/TournamentAssignments'
 import { TournamentTeams } from '@/components/admin/TournamentTeams'
+import { CategoryAppealAdminPanel } from '@/components/admin/CategoryAppealAdminPanel'
 import { BracketManager } from '@/components/bracket/BracketManager'
 
 export const dynamic = 'force-dynamic'
@@ -65,6 +66,23 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   const hasInstagrams = tournament.event_instagram || tournament.venue_instagram
 
   const categoriesWithTeams = (categories ?? []).filter((c: any) => allTeams.some((t) => t.category_id === c.id))
+
+  const { data: appealsRaw } = linkedAthleteIds.length
+    ? await supabase.from('category_appeals').select('*').in('athlete_id', linkedAthleteIds).order('created_at', { ascending: false })
+    : { data: [] as any[] }
+
+  const filedByIds = [...new Set((appealsRaw ?? []).map((a: any) => a.filed_by_profile_id))]
+  const { data: organizersData } = filedByIds.length
+    ? await supabase.from('organizers').select('profile_id, name').in('profile_id', filedByIds)
+    : { data: [] as any[] }
+  const nameByProfile = new Map((organizersData ?? []).map((o: any) => [o.profile_id, o.name]))
+  const athleteNameById = new Map(linkedAthletesWithCategory.map((a: any) => [a.id, a.full_name]))
+
+  const appeals = (appealsRaw ?? []).map((a: any) => ({
+    ...a,
+    filed_by_name: nameByProfile.get(a.filed_by_profile_id) ?? null,
+    athlete_name: athleteNameById.get(a.athlete_id) ?? '—',
+  }))
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
@@ -145,6 +163,10 @@ export default async function TournamentDetailPage({ params }: { params: Promise
           linkedAthletes={linkedAthletesWithCategory}
           teams={allTeams}
         />
+      </div>
+
+      <div className="mt-10 pt-10 border-t border-white/10">
+        <CategoryAppealAdminPanel categories={categories ?? []} appeals={appeals} />
       </div>
 
       <div className="mt-10 pt-10 border-t border-white/10 flex flex-col gap-6">
