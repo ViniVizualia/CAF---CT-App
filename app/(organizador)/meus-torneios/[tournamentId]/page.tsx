@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
+import { BracketManager } from '@/components/bracket/BracketManager'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +20,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const { data: tournament } = await supabase.from('tournaments').select('*').eq('id', tournamentId).single()
   if (!tournament) notFound()
 
-  const [{ data: athletes }, { data: feedback }] = await Promise.all([
+  const [{ data: athletes }, { data: feedback }, { data: categories }, { data: teams }, { data: brackets }] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
       .select('caf_number, full_name, status')
@@ -29,7 +30,21 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       .select('id, category, message, is_anonymous, athlete_name, created_at')
       .eq('tournament_id', tournamentId)
       .order('created_at', { ascending: false }),
+    supabase.from('categories').select('id, name').order('order_index'),
+    supabase
+      .from('tournament_teams')
+      .select('id, category_id, athlete_1:athletes!tournament_teams_athlete_id_1_fkey(id, full_name, caf_number), athlete_2:athletes!tournament_teams_athlete_id_2_fkey(id, full_name, caf_number)')
+      .eq('tournament_id', tournamentId),
+    supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
   ])
+
+  const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
+  const bracketIds = (brackets ?? []).map((b: any) => b.id)
+  const { data: bracketMatches } = bracketIds.length
+    ? await supabase.from('bracket_matches').select('*').in('bracket_id', bracketIds)
+    : { data: [] as any[] }
+
+  const categoriesWithTeams = (categories ?? []).filter((c: any) => allTeams.some((t) => t.category_id === c.id))
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
@@ -60,6 +75,31 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
           </div>
         ))}
         {(!athletes || athletes.length === 0) && <p className="text-sm text-[var(--color-text-muted)]">Nenhum atleta vinculado.</p>}
+      </div>
+
+      <div className="flex flex-col gap-6 mb-8">
+        <h2 className="text-lg font-medium">Chaveamento</h2>
+        {categoriesWithTeams.length === 0 && (
+          <p className="text-sm text-[var(--color-text-muted)]">Nenhuma dupla formada ainda — fale com o Super Admin.</p>
+        )}
+        {categoriesWithTeams.map((category: any) => {
+          const categoryTeams = allTeams
+            .filter((t) => t.category_id === category.id)
+            .map((t) => ({ id: t.id, label: `${t.athlete_1.full_name} / ${t.athlete_2.full_name}` }))
+          const bracket = (brackets ?? []).find((b: any) => b.category_id === category.id) ?? null
+          const matches = (bracketMatches ?? []).filter((m: any) => m.bracket_id === bracket?.id)
+          return (
+            <BracketManager
+              key={category.id}
+              tournamentId={tournamentId}
+              categoryId={category.id}
+              categoryName={category.name}
+              teams={categoryTeams}
+              bracket={bracket}
+              matches={matches}
+            />
+          )
+        })}
       </div>
 
       <h2 className="text-lg font-medium mb-3">Mensagens dos atletas</h2>
