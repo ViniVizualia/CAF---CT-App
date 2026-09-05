@@ -21,7 +21,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, city, state, start_date, end_date, status')
+    .select('id, name, city, state, start_date, end_date, status, prize_info')
     .eq('id', tournamentId)
     .single()
 
@@ -36,6 +36,13 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
           {tournament.city}/{tournament.state} · {new Date(tournament.start_date).toLocaleDateString('pt-BR')} a {new Date(tournament.end_date).toLocaleDateString('pt-BR')}
         </p>
       </div>
+
+      {tournament.prize_info && (
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
+          <p className="text-sm font-medium mb-1">Premiação</p>
+          <p className="text-sm text-[var(--color-text-muted)] whitespace-pre-line">{tournament.prize_info}</p>
+        </div>
+      )}
 
       <TournamentFeedbackForm tournamentId={tournament.id} athleteId={athlete.id} />
     </main>
