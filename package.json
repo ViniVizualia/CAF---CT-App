@@ -15,7 +15,8 @@
     "@supabase/supabase-js": "latest",
     "qrcode.react": "latest",
     "jsqr": "latest",
-    "dexie": "latest"
+    "dexie": "latest",
+    "jspdf": "latest"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
