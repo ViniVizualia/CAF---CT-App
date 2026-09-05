@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
 import { createClient } from '@/lib/supabase/client'
 import { prepareTournamentOffline, getTournamentMeta } from '@/lib/offline/snapshot'
-import { syncPendingScanLogs, countPendingScanLogs } from '@/lib/offline/sync'
+import { syncPendingScanLogs, countPendingScanLogs, syncPendingBracketMatches, countPendingBracketMatches } from '@/lib/offline/sync'
 import { offlineDB, type TournamentMeta, type AthleteSnapshot } from '@/lib/offline/db'
+import { BracketOfflineManager } from '@/components/bracket/BracketOfflineManager'
 
-type View = 'hub' | 'scanner' | 'busca' | 'validacao' | 'historico'
+type View = 'hub' | 'scanner' | 'busca' | 'validacao' | 'historico' | 'chaveamento'
 type ResultStatus = 'liberado' | 'vencido' | 'bloqueado' | 'nao_encontrado'
 
 interface AthleteResult {
@@ -70,7 +71,9 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
   const [preparing, setPreparing] = useState(false)
   const [prepareError, setPrepareError] = useState<string | null>(null)
   const [pendingCount, setPendingCount] = useState(0)
+  const [pendingBracketCount, setPendingBracketCount] = useState(0)
   const [syncing, setSyncing] = useState(false)
+  const [bracketCategories, setBracketCategories] = useState<{ categoryId: number; categoryName: string }[]>([])
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -95,6 +98,7 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
   useEffect(() => {
     getTournamentMeta(tournamentId).then(setOfflineMeta)
     countPendingScanLogs(tournamentId).then(setPendingCount)
+    countPendingBracketMatches(tournamentId).then(setPendingBracketCount)
   }, [tournamentId])
 
   useEffect(() => {
@@ -105,8 +109,11 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
   async function handleSync() {
     setSyncing(true)
     await syncPendingScanLogs(tournamentId)
-    const remaining = await countPendingScanLogs(tournamentId)
-    setPendingCount(remaining)
+    await syncPendingBracketMatches(tournamentId)
+    const remainingScans = await countPendingScanLogs(tournamentId)
+    const remainingBrackets = await countPendingBracketMatches(tournamentId)
+    setPendingCount(remainingScans)
+    setPendingBracketCount(remainingBrackets)
     setSyncing(false)
   }
 
@@ -122,6 +129,24 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
     } finally {
       setPreparing(false)
     }
+  }
+
+  async function loadBracketCategories() {
+    setLoading(true)
+    if (isOnline) {
+      const supabase = createClient()
+      const { data } = await supabase.from('tournament_teams').select('category_id, categories(name)').eq('tournament_id', tournamentId)
+      const seen = new Map<number, string>()
+      for (const row of data ?? []) seen.set((row as any).category_id, (row as any).categories?.name ?? '')
+      setBracketCategories([...seen.entries()].map(([categoryId, categoryName]) => ({ categoryId, categoryName })))
+    } else {
+      const rows = await offlineDB.teamsSnapshot.where('tournamentId').equals(tournamentId).toArray()
+      const seen = new Map<number, string>()
+      for (const r of rows) seen.set(r.categoryId, r.categoryName)
+      setBracketCategories([...seen.entries()].map(([categoryId, categoryName]) => ({ categoryId, categoryName })))
+    }
+    setLoading(false)
+    setView('chaveamento')
   }
 
   async function finalizeResult(athleteResult: AthleteResult, method: 'qr' | 'manual') {
@@ -327,10 +352,11 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
           {!isOnline && <p className="text-xs text-[var(--color-text-muted)] mt-2">Conecte-se à internet para preparar ou atualizar.</p>}
         </div>
 
-        {pendingCount > 0 && (
-          <div className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3 flex justify-between items-center text-sm">
-            <span>{pendingCount} validações pendentes de sincronizar</span>
-            <button onClick={handleSync} disabled={!isOnline || syncing} className="text-[var(--color-primary)] underline disabled:opacity-50 disabled:no-underline">
+        {(pendingCount > 0 || pendingBracketCount > 0) && (
+          <div className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3 flex flex-col gap-1 text-sm">
+            {pendingCount > 0 && <span>{pendingCount} validações pendentes de sincronizar</span>}
+            {pendingBracketCount > 0 && <span>{pendingBracketCount} resultados de chaveamento pendentes de sincronizar</span>}
+            <button onClick={handleSync} disabled={!isOnline || syncing} className="self-start text-[var(--color-primary)] underline disabled:opacity-50 disabled:no-underline">
               {syncing ? 'Sincronizando...' : 'Sincronizar agora'}
             </button>
           </div>
@@ -341,6 +367,9 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
         </button>
         <button onClick={() => setView('busca')} disabled={offlineBlocked} className="rounded-[var(--radius-md)] border border-white/15 py-4 font-medium disabled:opacity-60">
           Buscar Atleta
+        </button>
+        <button onClick={loadBracketCategories} disabled={loading} className="rounded-[var(--radius-md)] border border-white/15 py-4 font-medium disabled:opacity-60">
+          Chaveamento
         </button>
         {offlineBlocked && (
           <p className="text-xs text-[var(--color-danger)] text-center">
@@ -416,6 +445,26 @@ export function TorneioMode({ tournamentId, tournamentName, tournamentEndDate, o
           </div>
         ))}
         {history.length === 0 && <p className="text-sm text-[var(--color-text-muted)]">Nenhuma validação registrada ainda.</p>}
+        <button onClick={backToHub} className="rounded-[var(--radius-md)] border border-white/15 py-3 font-medium mt-2">← Voltar</button>
+      </div>
+    )
+  } else if (view === 'chaveamento') {
+    content = (
+      <div className="flex flex-col gap-4">
+        <h2 className="text-lg font-medium">Chaveamento</h2>
+        {bracketCategories.length === 0 && (
+          <p className="text-sm text-[var(--color-text-muted)]">Nenhuma dupla formada ainda nesta base.</p>
+        )}
+        {bracketCategories.map((c) => (
+          <BracketOfflineManager
+            key={c.categoryId}
+            tournamentId={tournamentId}
+            categoryId={c.categoryId}
+            categoryName={c.categoryName}
+            isOnline={isOnline}
+            offlineReady={!!offlineMeta && !offlineExpired}
+          />
+        ))}
         <button onClick={backToHub} className="rounded-[var(--radius-md)] border border-white/15 py-3 font-medium mt-2">← Voltar</button>
       </div>
     )
