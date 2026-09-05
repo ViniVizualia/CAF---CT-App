@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 interface Item {
   id: string
   name: string
@@ -17,13 +19,17 @@ export function UpcomingTournamentsPanel({ items }: { items: Item[] }) {
       </h2>
       <div className="flex flex-col gap-2">
         {items.map((t) => (
-          <div key={t.id} className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3">
+          <Link
+            key={t.id}
+            href={`/torneios/${t.id}`}
+            className="block rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
+          >
             <p className="font-medium text-sm">{t.name}</p>
             <p className="text-xs text-[var(--color-text-muted)]">
               {t.city}/{t.state} · {new Date(t.start_date).toLocaleDateString('pt-BR')}
               {t.status === 'active' && <span className="ml-2 text-[var(--color-success)] font-medium">● Ativo</span>}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
