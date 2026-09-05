@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TournamentFeedbackForm } from '@/components/feedback/TournamentFeedbackForm'
 import { BracketView } from '@/components/bracket/BracketView'
+import { CategoryAppealAthleteView } from '@/components/athlete/CategoryAppealAthleteView'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,13 +29,18 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   if (!tournament) notFound()
 
-  const [{ data: categories }, { data: teams }, { data: brackets }] = await Promise.all([
+  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
     supabase
       .from('tournament_teams')
       .select('id, category_id, athlete_1:athletes!tournament_teams_athlete_id_1_fkey(full_name), athlete_2:athletes!tournament_teams_athlete_id_2_fkey(full_name)')
       .eq('tournament_id', tournamentId),
     supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
+    supabase
+      .from('category_appeals')
+      .select('*')
+      .eq('athlete_id', athlete.id)
+      .order('created_at', { ascending: false }),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({
@@ -68,6 +74,8 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
           <p className="text-sm text-[var(--color-text-muted)] whitespace-pre-line">{tournament.prize_info}</p>
         </div>
       )}
+
+      <CategoryAppealAthleteView categories={categories ?? []} appeals={appeals ?? []} />
 
       {categoriesWithBrackets.length > 0 && (
         <div className="flex flex-col gap-4">
