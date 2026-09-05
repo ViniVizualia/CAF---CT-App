@@ -47,7 +47,7 @@ export default async function HomePage() {
 
   const today = new Date().toISOString().slice(0, 10)
 
-  const [{ data: historyRows }, { data: upcoming }] = await Promise.all([
+  const [{ data: historyRows }, { data: upcoming }, thumbSigned] = await Promise.all([
     supabase
       .from('tournament_athletes')
       .select('tournaments(id, name, city, state, start_date, end_date, status)')
@@ -58,6 +58,9 @@ export default async function HomePage() {
       .gte('end_date', today)
       .order('start_date', { ascending: true })
       .limit(5),
+    athlete.thumbnail_path
+      ? supabase.storage.from('athlete-thumbnails').createSignedUrl(athlete.thumbnail_path, 3600)
+      : Promise.resolve({ data: null } as any),
   ])
 
   const history = (historyRows ?? [])
@@ -67,38 +70,71 @@ export default async function HomePage() {
 
   const styleKey = ((athlete.category as any)?.style_key ?? 'estreante') as CategoryKey
   const cardStyle = categoryStyles[styleKey]
+  const thumbUrl = thumbSigned?.data?.signedUrl ?? null
 
   return (
-    <main className="min-h-screen px-6 py-8 max-w-md mx-auto flex flex-col gap-8">
-      <div className="text-center">
-        <p className="text-sm text-[var(--color-text-muted)]">Olá,</p>
-        <h1 className="text-2xl font-semibold">{athlete.full_name.split(' ')[0]}</h1>
+    <main className="min-h-screen px-6 py-8 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <p className="text-sm text-[var(--color-text-muted)]">Olá,</p>
+          <h1 className="text-2xl font-semibold">{athlete.full_name.split(' ')[0]}</h1>
+        </div>
+        <span
+          className="text-xs font-semibold px-3 py-1.5 rounded-full"
+          style={{ background: cardStyle.gradient[1], color: cardStyle.textOnCard }}
+        >
+          {(athlete.category as any)?.name ?? '—'}
+        </span>
       </div>
 
-      <Link
-        href="/carteirinha"
-        className="rounded-[var(--radius-md)] px-5 py-5 flex items-center justify-between font-medium"
-        style={{
-          background: `linear-gradient(135deg, ${cardStyle.gradient[0]}, ${cardStyle.gradient[1]})`,
-          color: cardStyle.textOnCard,
-        }}
-      >
-        <span>Ver minha carteirinha</span>
-        <span>→</span>
-      </Link>
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+        <div className="flex flex-col gap-4">
+          <Link
+            href="/carteirinha"
+            className="rounded-[var(--radius-lg)] px-6 py-6 flex items-center justify-between gap-4"
+            style={{
+              background: `linear-gradient(135deg, ${cardStyle.gradient[0]}, ${cardStyle.gradient[1]})`,
+              color: cardStyle.textOnCard,
+            }}
+          >
+            <div className="flex items-center gap-4">
+              {thumbUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={thumbUrl} alt={athlete.full_name} className="w-16 h-16 rounded-full object-cover border-2 border-white/30" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-black/15 border-2 border-white/30" />
+              )}
+              <div>
+                <p className="font-semibold text-lg leading-tight">{athlete.full_name}</p>
+                <p className="text-sm opacity-90">
+                  CAF {athlete.caf_number ? String(athlete.caf_number).padStart(6, '0') : '—'}
+                </p>
+              </div>
+            </div>
+            <span className="text-xl">→</span>
+          </Link>
 
-      <Link
-        href="/loja"
-        className="rounded-[var(--radius-md)] border border-[var(--color-accent)]/40 px-5 py-4 flex items-center justify-between font-medium"
-      >
-        <span>Comprar uniforme oficial CAF</span>
-        <span className="text-[var(--color-accent)]">→</span>
-      </Link>
+          <Link
+            href="/loja"
+            className="rounded-[var(--radius-md)] border border-[var(--color-accent)]/40 px-5 py-4 flex items-center justify-between font-medium"
+          >
+            <span>Comprar uniforme oficial CAF</span>
+            <span className="text-[var(--color-accent)]">→</span>
+          </Link>
 
-      <TournamentHistoryPanel items={history} />
-      <UpcomingTournamentsPanel items={upcoming ?? []} />
-      <SponsorsPanel />
-      <InstagramPanel />
+          <div className="rounded-[var(--radius-md)] border border-white/10 p-5">
+            <TournamentHistoryPanel items={history} />
+          </div>
+        </div>
+
+        <aside className="flex flex-col gap-4">
+          <div className="rounded-[var(--radius-md)] border border-white/10 p-5">
+            <UpcomingTournamentsPanel items={upcoming ?? []} />
+          </div>
+          <SponsorsPanel />
+          <InstagramPanel />
+        </aside>
+      </div>
     </main>
   )
 }
