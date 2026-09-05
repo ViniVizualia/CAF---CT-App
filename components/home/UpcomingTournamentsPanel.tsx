@@ -21,7 +21,7 @@ export function UpcomingTournamentsPanel({ items }: { items: Item[] }) {
         {items.map((t) => (
           <Link
             key={t.id}
-            href={`/torneios/${t.id}`}
+            href={`/torneio/${t.id}`}
             className="block rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
           >
             <p className="font-medium text-sm">{t.name}</p>
