@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 interface Organizer { id: string; name: string }
-interface Athlete { id: string; full_name: string; caf_number: number | null }
-interface Category { id: number; name: string }
+interface Athlete { id: string; full_name: string; caf_number: number | null; declared_category_id: number | null }
+interface Category { id: number; name: string; order_index: number }
 
 interface Props {
   tournamentId: string
@@ -32,6 +32,23 @@ export function TournamentAssignments({
   const [selectedCategory, setSelectedCategory] = useState(categories[0]?.id ?? 1)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const selectedAthleteData = availableAthletes.find((a) => a.id === selectedAthlete)
+
+  const eligibleCategories = useMemo(() => {
+    if (!selectedAthleteData?.declared_category_id) return categories
+    const athleteOrder = categories.find((c) => c.id === selectedAthleteData.declared_category_id)?.order_index
+    if (athleteOrder === undefined) return categories
+    return categories.filter((c) => c.order_index >= athleteOrder)
+  }, [categories, selectedAthleteData])
+
+  function handleAthleteChange(athleteId: string) {
+    setSelectedAthlete(athleteId)
+    const athlete = availableAthletes.find((a) => a.id === athleteId)
+    const athleteOrder = categories.find((c) => c.id === athlete?.declared_category_id)?.order_index
+    const firstEligible = athleteOrder === undefined ? categories[0] : categories.find((c) => c.order_index >= athleteOrder)
+    if (firstEligible) setSelectedCategory(firstEligible.id)
+  }
 
   async function addOrganizer() {
     if (!selectedOrganizer) return
@@ -86,12 +103,15 @@ export function TournamentAssignments({
         </div>
         {availableAthletes.length > 0 && (
           <div className="flex flex-col gap-2">
-            <select value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)} className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-sm">
+            <select value={selectedAthlete} onChange={(e) => handleAthleteChange(e.target.value)} className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-sm">
               {availableAthletes.map((a) => <option key={a.id} value={a.id}>{a.full_name}</option>)}
             </select>
             <select value={selectedCategory} onChange={(e) => setSelectedCategory(Number(e.target.value))} className="rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-sm">
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {eligibleCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              O atleta pode entrar na categoria dele ou em qualquer categoria mais difícil, mas não numa mais fácil.
+            </p>
             <button onClick={addAthlete} disabled={loading !== null} className="rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-2 text-sm disabled:opacity-60">
               {loading === 'athlete' ? 'Vinculando...' : 'Vincular atleta'}
             </button>
