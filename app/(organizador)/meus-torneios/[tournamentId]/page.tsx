@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 import { LogoUploader } from '@/components/organizer/LogoUploader'
+import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { BracketManager } from '@/components/bracket/BracketManager'
 import { BracketExportPanel } from '@/components/bracket/BracketExportPanel'
 
@@ -25,7 +26,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const [{ data: athletes }, { data: feedback }, { data: categories }, { data: teams }, { data: brackets }] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
-      .select('caf_number, full_name, status')
+      .select('athlete_id, caf_number, full_name, category_name, status')
       .eq('tournament_id', tournamentId),
     supabase
       .from('tournament_feedback_organizer_view')
@@ -51,6 +52,19 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const logoUrl = tournament.logo_path
     ? supabase.storage.from('tournament-logos').getPublicUrl(tournament.logo_path).data.publicUrl
     : null
+
+  const athleteIds = (athletes ?? []).map((a: any) => a.athlete_id)
+  const { data: appealsRaw } = athleteIds.length
+    ? await supabase.from('category_appeals').select('*').in('athlete_id', athleteIds).order('created_at', { ascending: false })
+    : { data: [] as any[] }
+
+  const filedByIds = [...new Set((appealsRaw ?? []).map((a: any) => a.filed_by_profile_id))]
+  const { data: organizersData } = filedByIds.length
+    ? await supabase.from('organizers').select('profile_id, name').in('profile_id', filedByIds)
+    : { data: [] as any[] }
+  const nameByProfile = new Map((organizersData ?? []).map((o: any) => [o.profile_id, o.name]))
+
+  const appeals = (appealsRaw ?? []).map((a: any) => ({ ...a, filed_by_name: nameByProfile.get(a.filed_by_profile_id) ?? null }))
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
@@ -82,6 +96,15 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
           </div>
         ))}
         {(!athletes || athletes.length === 0) && <p className="text-sm text-[var(--color-text-muted)]">Nenhum atleta vinculado.</p>}
+      </div>
+
+      <div className="mb-8">
+        <CategoryAppealPanel
+          tournamentId={tournamentId}
+          athletes={(athletes ?? []).map((a: any) => ({ athlete_id: a.athlete_id, full_name: a.full_name, category_name: a.category_name }))}
+          categories={categories ?? []}
+          appeals={appeals}
+        />
       </div>
 
       <div className="flex flex-col gap-6 mb-8">
