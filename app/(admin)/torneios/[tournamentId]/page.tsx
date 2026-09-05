@@ -4,6 +4,21 @@ import { TournamentAssignments } from '@/components/admin/TournamentAssignments'
 
 export const dynamic = 'force-dynamic'
 
+const CATEGORY_ORDER = [
+  'Estreante',
+  'Iniciante',
+  'Intermediário',
+  'Amador C',
+  'Amador B',
+  'Amador A',
+  'Qualifier',
+]
+
+function formatInstagram(handle: string) {
+  const clean = handle.replace('@', '').trim()
+  return { display: `@${clean}`, url: `https://instagram.com/${clean}` }
+}
+
 export default async function TournamentDetailPage({ params }: { params: Promise<{ tournamentId: string }> }) {
   const { tournamentId } = await params
   const supabase = await createClient()
@@ -20,25 +35,4 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   ])
 
   const linkedOrganizerIds = (linkedOrganizers ?? []).map((r: any) => r.organizer_id)
-  const linkedAthleteIds = (linkedAthletes ?? []).map((r: any) => r.athlete_id)
-
-  return (
-    <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
-      <a href="/torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
-      <h1 className="text-2xl font-semibold mt-4 mb-1">{tournament.name}</h1>
-      <p className="text-sm text-[var(--color-text-muted)] mb-8">
-        {tournament.city}/{tournament.state} · {tournament.start_date} a {tournament.end_date} · {tournament.status}
-      </p>
-      <TournamentAssignments
-        tournamentId={tournamentId}
-        allOrganizers={allOrganizers ?? []}
-        linkedOrganizers={(linkedOrganizers ?? []).map((r: any) => r.organizers)}
-        allAthletes={allAthletes ?? []}
-        linkedAthletes={(linkedAthletes ?? []).map((r: any) => ({ ...r.athletes, category_at_tournament: r.category_at_tournament }))}
-        categories={categories ?? []}
-        linkedOrganizerIds={linkedOrganizerIds}
-        linkedAthleteIds={linkedAthleteIds}
-      />
-    </main>
-  )
-}
+  const linkedAthleteIds = (linkedAthletes ?? []).map
