@@ -12,7 +12,6 @@ const CATEGORY_ORDER = [
   'Intermediário',
   'Amador C',
   'Amador B',
-  'Amador A',
   'Qualifier',
 ]
 
@@ -39,9 +38,9 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   ] = await Promise.all([
     supabase.from('organizers').select('id, name').eq('status', 'active'),
     supabase.from('tournament_organizers').select('organizer_id, organizers(id, name)').eq('tournament_id', tournamentId),
-    supabase.from('athletes').select('id, full_name, caf_number').eq('status', 'ativo'),
+    supabase.from('athletes').select('id, full_name, caf_number, declared_category_id').eq('status', 'ativo'),
     supabase.from('tournament_athletes').select('athlete_id, category_at_tournament, athletes(id, full_name, caf_number)').eq('tournament_id', tournamentId),
-    supabase.from('categories').select('id, name').order('order_index'),
+    supabase.from('categories').select('id, name, order_index').order('order_index'),
     supabase
       .from('tournament_teams')
       .select('id, category_id, athlete_1:athletes!tournament_teams_athlete_id_1_fkey(id, full_name, caf_number), athlete_2:athletes!tournament_teams_athlete_id_2_fkey(id, full_name, caf_number)')
