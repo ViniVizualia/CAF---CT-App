@@ -82,6 +82,10 @@ export default function LoginPage() {
         </button>
       </form>
 
+      <Link href="/recuperar-senha" className="text-sm text-center text-[var(--color-text-muted)] underline">
+        Esqueci minha senha
+      </Link>
+
       <p className="text-sm text-center text-[var(--color-text-muted)]">
         Ainda não tem cadastro?{' '}
         <Link href="/cadastro" className="text-[var(--color-primary)] underline">
