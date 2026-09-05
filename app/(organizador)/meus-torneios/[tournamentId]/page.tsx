@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,8 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
           Abrir Modo Torneio →
         </Link>
       </div>
+
+      <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
 
       <h2 className="text-lg font-medium mb-3">Atletas</h2>
       <div className="flex flex-col gap-2 mb-8">
