@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 interface Item {
   id: string
   name: string
@@ -28,8 +30,9 @@ export function TournamentHistoryPanel({ items }: { items: Item[] }) {
         {items.map((t) => {
           const played = new Date(t.end_date) < today
           return (
-            <div
+            <Link
               key={t.id}
+              href={`/torneios/${t.id}`}
               className="flex justify-between items-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
             >
               <div>
@@ -41,7 +44,7 @@ export function TournamentHistoryPanel({ items }: { items: Item[] }) {
               <span className={`text-xs font-medium ${played ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-accent)]'}`}>
                 {played ? 'Disputado' : 'Inscrito'}
               </span>
-            </div>
+            </Link>
           )
         })}
       </div>
