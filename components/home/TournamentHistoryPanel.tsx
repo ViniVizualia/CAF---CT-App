@@ -32,7 +32,7 @@ export function TournamentHistoryPanel({ items }: { items: Item[] }) {
           return (
             <Link
               key={t.id}
-              href={`/torneios/${t.id}`}
+              href={`/torneio/${t.id}`}
               className="flex justify-between items-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
             >
               <div>
