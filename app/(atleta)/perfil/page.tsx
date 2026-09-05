@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { EditProfileForm } from '@/components/perfil/EditProfileForm'
+import { FeedbackForm } from '@/components/feedback/FeedbackForm'
+import { ContactPanel } from '@/components/feedback/ContactPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,8 +32,8 @@ export default async function PerfilPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Meu perfil</h1>
+    <main className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold">Meu perfil</h1>
       <EditProfileForm
         userId={user.id}
         initialFullName={athlete.full_name}
@@ -41,6 +43,8 @@ export default async function PerfilPage() {
         initialInstagram={athlete.instagram ?? ''}
         currentPhotoUrl={photoUrl}
       />
+      <FeedbackForm />
+      <ContactPanel />
     </main>
   )
 }
