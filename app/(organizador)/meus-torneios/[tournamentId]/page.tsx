@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
+import { LogoUploader } from '@/components/organizer/LogoUploader'
 import { BracketManager } from '@/components/bracket/BracketManager'
+import { BracketExportPanel } from '@/components/bracket/BracketExportPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +48,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
   const categoriesWithTeams = (categories ?? []).filter((c: any) => allTeams.some((t) => t.category_id === c.id))
 
+  const logoUrl = tournament.logo_path
+    ? supabase.storage.from('tournament-logos').getPublicUrl(tournament.logo_path).data.publicUrl
+    : null
+
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
       <a href="/meus-torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
@@ -64,6 +70,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
         </Link>
       </div>
 
+      <LogoUploader tournamentId={tournamentId} initialLogoPath={tournament.logo_path} />
       <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
 
       <h2 className="text-lg font-medium mb-3">Atletas</h2>
@@ -89,15 +96,24 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
           const bracket = (brackets ?? []).find((b: any) => b.category_id === category.id) ?? null
           const matches = (bracketMatches ?? []).filter((m: any) => m.bracket_id === bracket?.id)
           return (
-            <BracketManager
-              key={category.id}
-              tournamentId={tournamentId}
-              categoryId={category.id}
-              categoryName={category.name}
-              teams={categoryTeams}
-              bracket={bracket}
-              matches={matches}
-            />
+            <div key={category.id}>
+              <BracketManager
+                tournamentId={tournamentId}
+                categoryId={category.id}
+                categoryName={category.name}
+                teams={categoryTeams}
+                bracket={bracket}
+                matches={matches}
+              />
+              <BracketExportPanel
+                tournamentName={tournament.name}
+                logoUrl={logoUrl}
+                categoryName={category.name}
+                teams={categoryTeams}
+                matches={matches}
+                bracketFinished={bracket?.status === 'finished'}
+              />
+            </div>
           )
         })}
       </div>
