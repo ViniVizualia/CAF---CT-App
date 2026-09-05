@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LogoutButton } from './LogoutButton'
 
 interface NavItem {
   label: string
@@ -29,6 +30,7 @@ export function AreaNav({ items }: { items: NavItem[] }) {
           </Link>
         )
       })}
+      <LogoutButton />
     </nav>
   )
 }
