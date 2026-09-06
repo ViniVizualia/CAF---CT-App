@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { TournamentFeedbackForm } from '@/components/feedback/TournamentFeedbackForm'
 import { BracketView } from '@/components/bracket/BracketView'
 import { CategoryAppealAthleteView } from '@/components/athlete/CategoryAppealAthleteView'
+import { TournamentMessagesBox } from '@/components/athlete/TournamentMessagesBox'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   if (!tournament) notFound()
 
-  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }, { data: myEnrollment }] = await Promise.all([
+  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }, { data: myEnrollment }, { data: messages }] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
     supabase
       .from('tournament_teams')
@@ -47,6 +48,12 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .eq('tournament_id', tournamentId)
       .eq('athlete_id', athlete.id)
       .maybeSingle(),
+    supabase
+      .from('tournament_messages')
+      .select('id, message, created_at, read_at')
+      .eq('tournament_id', tournamentId)
+      .eq('athlete_id', athlete.id)
+      .order('created_at', { ascending: false }),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({
@@ -77,6 +84,8 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
           {tournament.city}/{tournament.state} · {new Date(tournament.start_date).toLocaleDateString('pt-BR')} a {new Date(tournament.end_date).toLocaleDateString('pt-BR')}
         </p>
       </div>
+
+      <TournamentMessagesBox messages={messages ?? []} />
 
       {tournament.prize_info && (
         <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
