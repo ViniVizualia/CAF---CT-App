@@ -9,6 +9,9 @@ export default function OrganizadorLayout({ children }: { children: ReactNode })
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/IMG_0348.png" alt="CAF" className="w-7 h-7 mr-2 flex-shrink-0" />
         <span className="text-sm font-medium text-[var(--color-text-muted)] mr-3">Organizador</span>
+        <Link href="/buscar-atleta" className="text-sm text-[var(--color-text-muted)] mr-3">
+          Buscar atleta
+        </Link>
         <Link href="/contato" className="text-sm text-[var(--color-text-muted)]">
           Contato
         </Link>
