@@ -23,13 +23,13 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, city, state, start_date, end_date, status, prize_info')
+    .select('id, name, city, state, start_date, end_date, status, prize_info, category_whatsapp_links')
     .eq('id', tournamentId)
     .single()
 
   if (!tournament) notFound()
 
-  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }] = await Promise.all([
+  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }, { data: myEnrollment }] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
     supabase
       .from('tournament_teams')
@@ -41,6 +41,12 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .select('*')
       .eq('athlete_id', athlete.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('tournament_athletes')
+      .select('category_at_tournament')
+      .eq('tournament_id', tournamentId)
+      .eq('athlete_id', athlete.id)
+      .maybeSingle(),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({
@@ -58,6 +64,10 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
     (brackets ?? []).some((b: any) => b.category_id === c.id)
   )
 
+  const myCategoryName = (categories ?? []).find((c: any) => c.id === myEnrollment?.category_at_tournament)?.name
+  const whatsappLinks = (tournament.category_whatsapp_links ?? {}) as Record<string, string>
+  const myWhatsappLink = myCategoryName ? whatsappLinks[myCategoryName] : null
+
   return (
     <main className="min-h-screen px-6 py-8 max-w-md mx-auto flex flex-col gap-6">
       <a href="/home" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
@@ -73,6 +83,17 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
           <p className="text-sm font-medium mb-1">Premiação</p>
           <p className="text-sm text-[var(--color-text-muted)] whitespace-pre-line">{tournament.prize_info}</p>
         </div>
+      )}
+
+      {myWhatsappLink && (
+        <a
+          href={myWhatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-[var(--radius-md)] bg-[var(--color-success)] text-white px-4 py-3 text-sm font-medium text-center"
+        >
+          Entrar no grupo do WhatsApp da minha categoria
+        </a>
       )}
 
       <CategoryAppealAthleteView categories={categories ?? []} appeals={appeals ?? []} />
