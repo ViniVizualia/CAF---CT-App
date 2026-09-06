@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 import { LogoUploader } from '@/components/organizer/LogoUploader'
+import { WhatsAppLinksEditor } from '@/components/organizer/WhatsAppLinksEditor'
 import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { AttendancePanel } from '@/components/organizer/AttendancePanel'
 import { BracketManager } from '@/components/bracket/BracketManager'
@@ -88,6 +89,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
       <LogoUploader tournamentId={tournamentId} initialLogoPath={tournament.logo_path} />
       <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
+      <WhatsAppLinksEditor tournamentId={tournamentId} initialLinks={tournament.category_whatsapp_links} />
 
       <h2 className="text-lg font-medium mb-3">Atletas</h2>
       <div className="flex flex-col gap-2 mb-8">
