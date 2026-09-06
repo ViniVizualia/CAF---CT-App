@@ -7,6 +7,8 @@ import { WhatsAppLinksEditor } from '@/components/organizer/WhatsAppLinksEditor'
 import { TournamentMessagesPanel } from '@/components/organizer/TournamentMessagesPanel'
 import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { AttendancePanel } from '@/components/organizer/AttendancePanel'
+import { FullCategoriesEditor } from '@/components/organizer/FullCategoriesEditor'
+import { RegistrationRequestsPanel } from '@/components/organizer/RegistrationRequestsPanel'
 import { BracketManager } from '@/components/bracket/BracketManager'
 import { BracketExportPanel } from '@/components/bracket/BracketExportPanel'
 
@@ -26,7 +28,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const { data: tournament } = await supabase.from('tournaments').select('*').eq('id', tournamentId).single()
   if (!tournament) notFound()
 
-  const [{ data: athletes }, { data: feedback }, { data: categories }, { data: teams }, { data: brackets }, { data: attendance }, { data: messages }] = await Promise.all([
+  const [
+    { data: athletes }, { data: feedback }, { data: categories }, { data: teams },
+    { data: brackets }, { data: attendance }, { data: messages }, { data: registrationRequests },
+  ] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
       .select('athlete_id, caf_number, full_name, category_name, status')
@@ -44,6 +49,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
     supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
     supabase.from('tournament_athletes_presence').select('athlete_id, full_name, caf_number, presence_status').eq('tournament_id', tournamentId),
     supabase.from('tournament_messages').select('id, athlete_id, message, created_at, read_at').eq('tournament_id', tournamentId).order('created_at', { ascending: false }),
+    supabase.rpc('get_tournament_registration_requests', { p_tournament_id: tournamentId }),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
@@ -92,6 +98,11 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       <LogoUploader tournamentId={tournamentId} initialLogoPath={tournament.logo_path} />
       <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
       <WhatsAppLinksEditor tournamentId={tournamentId} initialLinks={tournament.category_whatsapp_links} />
+      <FullCategoriesEditor tournamentId={tournamentId} initialFull={tournament.full_categories} />
+
+      <div className="mb-8">
+        <RegistrationRequestsPanel requests={registrationRequests ?? []} />
+      </div>
 
       <h2 className="text-lg font-medium mb-3">Atletas</h2>
       <div className="flex flex-col gap-2 mb-8">
