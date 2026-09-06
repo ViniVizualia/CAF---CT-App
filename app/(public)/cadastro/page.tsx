@@ -4,14 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { resizeImageToWebp } from '@/lib/images/resize-image'
+import { formatCpf, isValidCpf } from '@/lib/validation/cpf'
 
 const categoryOptions = [
   { id: 1, label: 'Estreante' },
   { id: 2, label: 'Iniciante' },
-  { id: 3, label: 'Intermediário' },
   { id: 4, label: 'Amador C' },
   { id: 5, label: 'Amador B' },
-  { id: 6, label: 'Amador A' },
   { id: 7, label: 'Qualifier' },
 ]
 
@@ -35,6 +34,7 @@ export default function CadastroPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [cpf, setCpf] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [city, setCity] = useState('')
@@ -49,6 +49,11 @@ export default function CadastroPage() {
 
     if (!photo) {
       setError('Envie uma foto de identificação.')
+      return
+    }
+
+    if (!isValidCpf(cpf)) {
+      setError('CPF inválido. Confira os números digitados.')
       return
     }
 
@@ -97,6 +102,7 @@ export default function CadastroPage() {
         p_instagram: instagram || null,
         p_declared_category_id: categoryId,
         p_photo_path: photoPath,
+        p_cpf: cpf.replace(/\D/g, ''),
       })
       if (rpcError) throw rpcError
 
@@ -127,6 +133,16 @@ export default function CadastroPage() {
         </Field>
         <Field label="Nome completo">
           <input required value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="CPF">
+          <input
+            required
+            inputMode="numeric"
+            placeholder="000.000.000-00"
+            value={cpf}
+            onChange={(e) => setCpf(formatCpf(e.target.value))}
+            className={inputClass}
+          />
         </Field>
         <Field label="WhatsApp">
           <input required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputClass} />
