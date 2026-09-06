@@ -43,12 +43,12 @@ export const shadows = {
 } as const;
 
 export type CategoryKey =
+  | "pre_estreante" // reservado para uso futuro — nenhuma categoria usa ainda
   | "estreante"
   | "iniciante"
-  | "intermediario"
+  | "intermediario" // fora da progressão principal — só usada em atribuição via torneio/recurso
   | "amador_c"
   | "amador_b"
-  | "amador_a"
   | "qualifier";
 
 interface CategoryStyle {
@@ -58,15 +58,17 @@ interface CategoryStyle {
   textOnCard: string;
 }
 
-// Progressão construída a partir das 3 cores oficiais: neutro → azul → verde → dourado
+// Progressão inspirada em faixas de artes marciais: branca (reservada) → amarela →
+// verde → azul → roxa → preta. Intermediário fica fora da progressão principal do
+// atleta (categoria só de torneio), com um tom neutro próprio.
 export const categoryStyles: Record<CategoryKey, CategoryStyle> = {
-  estreante: { label: "Estreante", order: 1, gradient: ["#D8DCE0", "#AEB4BB"], textOnCard: "#12161A" },
-  iniciante: { label: "Iniciante", order: 2, gradient: ["#7FA0C9", "#3D5C87"], textOnCard: "#F5F7FA" },
-  intermediario: { label: "Intermediário", order: 3, gradient: ["#3E8E5C", "#1F5E3A"], textOnCard: "#F5F7FA" },
-  amador_c: { label: "Amador C", order: 4, gradient: ["#1E7A3E", "#0C511A"], textOnCard: "#F5F7FA" },
-  amador_b: { label: "Amador B", order: 5, gradient: ["#1B2F5E", "#0A1730"], textOnCard: "#F5F7FA" },
-  amador_a: { label: "Amador A", order: 6, gradient: ["#2B2B2E", "#0E0E10"], textOnCard: "#F5F7FA" },
-  qualifier: { label: "Qualifier", order: 7, gradient: ["#F4D374", "#EBBA36"], textOnCard: "#151107" },
+  pre_estreante: { label: "Pré-estreante", order: 0, gradient: ["#F2F3F5", "#D6DADF"], textOnCard: "#12161A" },
+  estreante: { label: "Estreante", order: 1, gradient: ["#D9B54B", "#8F6F1E"], textOnCard: "#151107" },
+  iniciante: { label: "Iniciante", order: 2, gradient: ["#2F7D52", "#0C511A"], textOnCard: "#F5F7FA" },
+  intermediario: { label: "Intermediário", order: 3, gradient: ["#5A6472", "#2C3138"], textOnCard: "#F5F7FA" },
+  amador_c: { label: "Amador C", order: 4, gradient: ["#2C5F7C", "#123247"], textOnCard: "#F5F7FA" },
+  amador_b: { label: "Amador B", order: 5, gradient: ["#6B3FA0", "#331D42"], textOnCard: "#F5F7FA" },
+  qualifier: { label: "Qualifier", order: 6, gradient: ["#2B2B2E", "#050505"], textOnCard: "#EBBA36" },
 };
 
 export const orderedCategories: CategoryKey[] = (
