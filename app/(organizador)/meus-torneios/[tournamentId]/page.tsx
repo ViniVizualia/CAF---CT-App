@@ -93,6 +93,9 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
         >
           Abrir Modo Torneio →
         </Link>
+        <p className="text-xs text-[var(--color-text-muted)] mt-2">
+          Use no dia do evento para escanear carteirinhas, registrar presença e atualizar o chaveamento — funciona mesmo sem internet.
+        </p>
       </div>
 
       <LogoUploader tournamentId={tournamentId} initialLogoPath={tournament.logo_path} />
