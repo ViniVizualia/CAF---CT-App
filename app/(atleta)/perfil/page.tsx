@@ -42,6 +42,10 @@ export default async function PerfilPage() {
         initialState={athlete.state}
         initialInstagram={athlete.instagram ?? ''}
         currentPhotoUrl={photoUrl}
+        gender={athlete.gender}
+        initialUniformSize={athlete.uniform_size}
+        initialShirtSize={athlete.shirt_size}
+        initialShortsSize={athlete.shorts_size}
       />
       <FeedbackForm />
       <ContactPanel />
