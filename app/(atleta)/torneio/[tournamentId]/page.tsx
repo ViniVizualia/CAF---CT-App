@@ -4,6 +4,7 @@ import { TournamentFeedbackForm } from '@/components/feedback/TournamentFeedback
 import { BracketView } from '@/components/bracket/BracketView'
 import { CategoryAppealAthleteView } from '@/components/athlete/CategoryAppealAthleteView'
 import { TournamentMessagesBox } from '@/components/athlete/TournamentMessagesBox'
+import { TournamentRegistrationForm } from '@/components/athlete/TournamentRegistrationForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,7 +31,10 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   if (!tournament) notFound()
 
-  const [{ data: categories }, { data: teams }, { data: brackets }, { data: appeals }, { data: myEnrollment }, { data: messages }] = await Promise.all([
+  const [
+    { data: categories }, { data: teams }, { data: brackets }, { data: appeals },
+    { data: myEnrollment }, { data: messages }, { data: myLatestRequest },
+  ] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
     supabase
       .from('tournament_teams')
@@ -54,6 +58,14 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .eq('tournament_id', tournamentId)
       .eq('athlete_id', athlete.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('tournament_registration_requests')
+      .select('id, status, request_type')
+      .eq('tournament_id', tournamentId)
+      .or(`athlete_id_1.eq.${athlete.id},athlete_id_2.eq.${athlete.id}`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({
@@ -75,6 +87,8 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
   const whatsappLinks = (tournament.category_whatsapp_links ?? {}) as Record<string, string>
   const myWhatsappLink = myCategoryName ? whatsappLinks[myCategoryName] : null
 
+  const showRegistrationSection = !myEnrollment && !['finished', 'canceled'].includes(tournament.status)
+
   return (
     <main className="min-h-screen px-6 py-8 max-w-md mx-auto flex flex-col gap-6">
       <a href="/home" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
@@ -86,6 +100,25 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       </div>
 
       <TournamentMessagesBox messages={messages ?? []} />
+
+      {showRegistrationSection && (
+        myLatestRequest?.status === 'pendente' ? (
+          <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
+            <p className="text-sm">
+              {myLatestRequest.request_type === 'interesse'
+                ? 'Seu interesse foi registrado — a categoria está com vagas preenchidas no momento. O organizador entra em contato se abrir vaga.'
+                : 'Sua solicitação de inscrição foi enviada e está aguardando aprovação do organizador.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            {myLatestRequest?.status === 'recusado' && (
+              <p className="text-sm text-[var(--color-danger)]">Sua última solicitação foi recusada pelo organizador. Você pode tentar novamente:</p>
+            )}
+            <TournamentRegistrationForm tournamentId={tournamentId} />
+          </>
+        )
+      )}
 
       {tournament.prize_info && (
         <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
