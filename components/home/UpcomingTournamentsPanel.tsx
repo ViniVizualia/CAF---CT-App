@@ -10,28 +10,30 @@ interface Item {
 }
 
 export function UpcomingTournamentsPanel({ items }: { items: Item[] }) {
-  if (items.length === 0) return null
-
   return (
     <section>
       <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2">
         Próximos torneios
       </h2>
-      <div className="flex flex-col gap-2">
-        {items.map((t) => (
-          <Link
-            key={t.id}
-            href={`/torneio/${t.id}`}
-            className="block rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
-          >
-            <p className="font-medium text-sm">{t.name}</p>
-            <p className="text-xs text-[var(--color-text-muted)]">
-              {t.city}/{t.state} · {new Date(t.start_date).toLocaleDateString('pt-BR')}
-              {t.status === 'active' && <span className="ml-2 text-[var(--color-success)] font-medium">● Ativo</span>}
-            </p>
-          </Link>
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-[var(--color-text-muted)]">Nenhum torneio novo nos próximos 4 meses. Volte em breve!</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {items.map((t) => (
+            <Link
+              key={t.id}
+              href={`/torneio/${t.id}`}
+              className="block rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3"
+            >
+              <p className="font-medium text-sm">{t.name}</p>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                {t.city}/{t.state} · {new Date(t.start_date).toLocaleDateString('pt-BR')}
+                {t.status === 'active' && <span className="ml-2 text-[var(--color-success)] font-medium">● Ativo</span>}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
