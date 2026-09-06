@@ -6,6 +6,7 @@ const items = [
   { label: 'Atletas', href: '/atletas' },
   { label: 'Organizadores', href: '/organizadores' },
   { label: 'Torneios', href: '/torneios' },
+  { label: 'Buscar Atleta', href: '/atletas/buscar' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
