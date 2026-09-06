@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { categoryStyles, type CategoryKey } from '@/lib/design-tokens'
+import { todayInBrazil } from '@/lib/utils/date'
 import { TournamentHistoryPanel } from '@/components/home/TournamentHistoryPanel'
 import { UpcomingTournamentsPanel } from '@/components/home/UpcomingTournamentsPanel'
 import { SponsorsPanel } from '@/components/home/SponsorsPanel'
@@ -46,7 +47,7 @@ export default async function HomePage() {
     )
   }
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayInBrazil()
 
   const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, { data: unreadRows }, thumbSigned] = await Promise.all([
     supabase
