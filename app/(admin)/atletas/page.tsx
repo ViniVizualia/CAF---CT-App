@@ -30,15 +30,20 @@ export default async function AtletasPage({ searchParams }: { searchParams: Prom
       </form>
       <div className="flex flex-col gap-2">
         {(athletes ?? []).map((a: any) => (
-          <Link key={a.id} href={`/atletas/${a.id}`} className="flex justify-between items-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3">
-            <div>
+          <div key={a.id} className="flex justify-between items-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3">
+            <Link href={`/atletas/${a.id}`} className="flex-1">
               <p className="font-medium">{a.full_name}</p>
               <p className="text-xs text-[var(--color-text-muted)]">
                 {a.caf_number ? `CAF ${String(a.caf_number).padStart(6, '0')}` : 'Sem número'} · {a.categories?.name ?? '—'}
               </p>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link href={`/atletas/${a.id}/carteirinha`} className="text-xs text-[var(--color-primary)] underline">
+                Ver carteirinha
+              </Link>
+              <span className="text-xs text-[var(--color-text-muted)]">{statusLabel[a.status] ?? a.status}</span>
             </div>
-            <span className="text-xs text-[var(--color-text-muted)]">{statusLabel[a.status] ?? a.status}</span>
-          </Link>
+          </div>
         ))}
         {(!athletes || athletes.length === 0) && <p className="text-sm text-[var(--color-text-muted)]">Nenhum atleta encontrado.</p>}
       </div>
