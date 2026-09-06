@@ -7,6 +7,19 @@ interface Item {
   state: string
   start_date: string
   end_date: string
+  presence_status?: 'presente' | 'ausente' | 'pendente' | null
+}
+
+const presenceLabel: Record<string, string> = {
+  presente: 'Presente',
+  ausente: 'Ausente',
+  pendente: 'Presença pendente',
+}
+
+const presenceColor: Record<string, string> = {
+  presente: 'var(--color-success)',
+  ausente: 'var(--color-danger)',
+  pendente: 'var(--color-text-muted)',
 }
 
 function formatRange(start: string, end: string) {
@@ -41,9 +54,13 @@ export function TournamentHistoryPanel({ items }: { items: Item[] }) {
                   {t.city}/{t.state} · {formatRange(t.start_date, t.end_date)}
                 </p>
               </div>
-              <span className={`text-xs font-medium ${played ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-accent)]'}`}>
-                {played ? 'Disputado' : 'Inscrito'}
-              </span>
+              {played ? (
+                <span className="text-xs font-medium" style={{ color: presenceColor[t.presence_status ?? 'pendente'] }}>
+                  {presenceLabel[t.presence_status ?? 'pendente']}
+                </span>
+              ) : (
+                <span className="text-xs font-medium text-[var(--color-accent)]">Inscrito</span>
+              )}
             </Link>
           )
         })}
