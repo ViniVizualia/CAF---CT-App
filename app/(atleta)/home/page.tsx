@@ -48,7 +48,7 @@ export default async function HomePage() {
 
   const today = new Date().toISOString().slice(0, 10)
 
-  const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, thumbSigned] = await Promise.all([
+  const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, { data: unreadRows }, thumbSigned] = await Promise.all([
     supabase
       .from('tournament_athletes')
       .select('tournaments(id, name, city, state, start_date, end_date, status)')
@@ -63,6 +63,11 @@ export default async function HomePage() {
       .from('tournament_athletes_presence')
       .select('tournament_id, presence_status')
       .eq('athlete_id', athlete.id),
+    supabase
+      .from('tournament_messages')
+      .select('tournament_id')
+      .eq('athlete_id', athlete.id)
+      .is('read_at', null),
     athlete.thumbnail_path
       ? supabase.storage.from('athlete-thumbnails').createSignedUrl(athlete.thumbnail_path, 3600)
       : Promise.resolve({ data: null } as any),
@@ -70,10 +75,19 @@ export default async function HomePage() {
 
   const presenceByTournament = new Map((presenceRows ?? []).map((p: any) => [p.tournament_id, p.presence_status]))
 
+  const unreadByTournament = new Map<string, number>()
+  for (const row of unreadRows ?? []) {
+    unreadByTournament.set(row.tournament_id, (unreadByTournament.get(row.tournament_id) ?? 0) + 1)
+  }
+
   const history = (historyRows ?? [])
     .map((r: any) => r.tournaments)
     .filter(Boolean)
-    .map((t: any) => ({ ...t, presence_status: presenceByTournament.get(t.id) ?? null }))
+    .map((t: any) => ({
+      ...t,
+      presence_status: presenceByTournament.get(t.id) ?? null,
+      unread_messages: unreadByTournament.get(t.id) ?? 0,
+    }))
     .sort((a: any, b: any) => (a.start_date < b.start_date ? 1 : -1))
 
   const styleKey = ((athlete.category as any)?.style_key ?? 'estreante') as CategoryKey
