@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { resizeImageToWebp } from '@/lib/images/resize-image'
 
+const sizeOptions = ['PP', 'P', 'M', 'G', 'GG', 'XGG'] as const
+
 const inputClass = 'rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-[var(--color-text-primary)]'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -23,16 +25,24 @@ interface Props {
   initialState: string
   initialInstagram: string
   currentPhotoUrl: string | null
+  gender: 'masculino' | 'feminino' | null
+  initialUniformSize: string | null
+  initialShirtSize: string | null
+  initialShortsSize: string | null
 }
 
 export function EditProfileForm({
   userId, initialFullName, initialWhatsapp, initialCity, initialState, initialInstagram, currentPhotoUrl,
+  gender, initialUniformSize, initialShirtSize, initialShortsSize,
 }: Props) {
   const [fullName, setFullName] = useState(initialFullName)
   const [whatsapp, setWhatsapp] = useState(initialWhatsapp)
   const [city, setCity] = useState(initialCity)
   const [state, setState] = useState(initialState)
   const [instagram, setInstagram] = useState(initialInstagram)
+  const [uniformSize, setUniformSize] = useState(initialUniformSize ?? '')
+  const [shirtSize, setShirtSize] = useState(initialShirtSize ?? '')
+  const [shortsSize, setShortsSize] = useState(initialShortsSize ?? '')
   const [newPhoto, setNewPhoto] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl)
   const [loading, setLoading] = useState(false)
@@ -80,6 +90,9 @@ export function EditProfileForm({
         p_state: state,
         p_instagram: instagram || null,
         p_photo_path: photoPath,
+        p_uniform_size: gender === 'masculino' ? uniformSize || null : null,
+        p_shirt_size: gender === 'feminino' ? shirtSize || null : null,
+        p_shorts_size: gender === 'feminino' ? shortsSize || null : null,
       })
       if (rpcError) throw rpcError
 
@@ -124,6 +137,32 @@ export function EditProfileForm({
       <Field label="Instagram (opcional)">
         <input value={instagram} onChange={(e) => setInstagram(e.target.value)} className={inputClass} />
       </Field>
+
+      {gender === 'masculino' && (
+        <Field label="Tamanho do uniforme">
+          <select value={uniformSize} onChange={(e) => setUniformSize(e.target.value)} className={inputClass}>
+            <option value="">Selecione...</option>
+            {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+      )}
+
+      {gender === 'feminino' && (
+        <div className="flex gap-3">
+          <Field label="Tamanho da camisa">
+            <select value={shirtSize} onChange={(e) => setShirtSize(e.target.value)} className={inputClass}>
+              <option value="">Selecione...</option>
+              {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field label="Tamanho do shorts">
+            <select value={shortsSize} onChange={(e) => setShortsSize(e.target.value)} className={inputClass}>
+              <option value="">Selecione...</option>
+              {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+        </div>
+      )}
 
       {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
       {success && <p className="text-sm text-[var(--color-success)]">Perfil atualizado com sucesso.</p>}
