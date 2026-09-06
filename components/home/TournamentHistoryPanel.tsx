@@ -8,6 +8,7 @@ interface Item {
   start_date: string
   end_date: string
   presence_status?: 'presente' | 'ausente' | 'pendente' | null
+  unread_messages?: number
 }
 
 const presenceLabel: Record<string, string> = {
@@ -53,6 +54,11 @@ export function TournamentHistoryPanel({ items }: { items: Item[] }) {
                 <p className="text-xs text-[var(--color-text-muted)]">
                   {t.city}/{t.state} · {formatRange(t.start_date, t.end_date)}
                 </p>
+                {!!t.unread_messages && (
+                  <p className="text-xs font-medium text-[var(--color-accent)] mt-1">
+                    ● {t.unread_messages} {t.unread_messages === 1 ? 'novo aviso' : 'novos avisos'}
+                  </p>
+                )}
               </div>
               {played ? (
                 <span className="text-xs font-medium" style={{ color: presenceColor[t.presence_status ?? 'pendente'] }}>
