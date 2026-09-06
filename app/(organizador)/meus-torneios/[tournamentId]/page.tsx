@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 import { LogoUploader } from '@/components/organizer/LogoUploader'
 import { WhatsAppLinksEditor } from '@/components/organizer/WhatsAppLinksEditor'
+import { TournamentMessagesPanel } from '@/components/organizer/TournamentMessagesPanel'
 import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { AttendancePanel } from '@/components/organizer/AttendancePanel'
 import { BracketManager } from '@/components/bracket/BracketManager'
@@ -25,7 +26,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const { data: tournament } = await supabase.from('tournaments').select('*').eq('id', tournamentId).single()
   if (!tournament) notFound()
 
-  const [{ data: athletes }, { data: feedback }, { data: categories }, { data: teams }, { data: brackets }, { data: attendance }] = await Promise.all([
+  const [{ data: athletes }, { data: feedback }, { data: categories }, { data: teams }, { data: brackets }, { data: attendance }, { data: messages }] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
       .select('athlete_id, caf_number, full_name, category_name, status')
@@ -42,6 +43,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       .eq('tournament_id', tournamentId),
     supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
     supabase.from('tournament_athletes_presence').select('athlete_id, full_name, caf_number, presence_status').eq('tournament_id', tournamentId),
+    supabase.from('tournament_messages').select('id, athlete_id, message, created_at, read_at').eq('tournament_id', tournamentId).order('created_at', { ascending: false }),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
@@ -104,6 +106,14 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
       <div className="mb-8">
         <AttendancePanel tournamentId={tournamentId} rows={attendance ?? []} />
+      </div>
+
+      <div className="mb-8">
+        <TournamentMessagesPanel
+          tournamentId={tournamentId}
+          athletes={(athletes ?? []).map((a: any) => ({ athlete_id: a.athlete_id, full_name: a.full_name }))}
+          messages={messages ?? []}
+        />
       </div>
 
       <div className="mb-8">
