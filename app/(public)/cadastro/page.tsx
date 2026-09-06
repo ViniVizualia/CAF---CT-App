@@ -14,6 +14,8 @@ const categoryOptions = [
   { id: 7, label: 'Qualifier' },
 ]
 
+const sizeOptions = ['PP', 'P', 'M', 'G', 'GG', 'XGG'] as const
+
 const inputClass =
   'rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-[var(--color-text-primary)]'
 
@@ -42,6 +44,10 @@ export default function CadastroPage() {
   const [instagram, setInstagram] = useState('')
   const [categoryId, setCategoryId] = useState(1)
   const [photo, setPhoto] = useState<File | null>(null)
+  const [gender, setGender] = useState<'masculino' | 'feminino'>('masculino')
+  const [uniformSize, setUniformSize] = useState('')
+  const [shirtSize, setShirtSize] = useState('')
+  const [shortsSize, setShortsSize] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,6 +60,16 @@ export default function CadastroPage() {
 
     if (!isValidCpf(cpf)) {
       setError('CPF inválido. Confira os números digitados.')
+      return
+    }
+
+    if (gender === 'masculino' && !uniformSize) {
+      setError('Selecione o tamanho do uniforme.')
+      return
+    }
+
+    if (gender === 'feminino' && (!shirtSize || !shortsSize)) {
+      setError('Selecione o tamanho da camisa e do shorts.')
       return
     }
 
@@ -103,6 +119,10 @@ export default function CadastroPage() {
         p_declared_category_id: categoryId,
         p_photo_path: photoPath,
         p_cpf: cpf.replace(/\D/g, ''),
+        p_gender: gender,
+        p_uniform_size: gender === 'masculino' ? uniformSize : null,
+        p_shirt_size: gender === 'feminino' ? shirtSize : null,
+        p_shorts_size: gender === 'feminino' ? shortsSize : null,
       })
       if (rpcError) throw rpcError
 
@@ -168,6 +188,38 @@ export default function CadastroPage() {
             ))}
           </select>
         </Field>
+
+        <Field label="Gênero">
+          <select value={gender} onChange={(e) => setGender(e.target.value as 'masculino' | 'feminino')} className={inputClass}>
+            <option value="masculino">Masculino</option>
+            <option value="feminino">Feminino</option>
+          </select>
+        </Field>
+
+        {gender === 'masculino' ? (
+          <Field label="Tamanho do uniforme">
+            <select required value={uniformSize} onChange={(e) => setUniformSize(e.target.value)} className={inputClass}>
+              <option value="">Selecione...</option>
+              {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+        ) : (
+          <div className="flex gap-3">
+            <Field label="Tamanho da camisa">
+              <select required value={shirtSize} onChange={(e) => setShirtSize(e.target.value)} className={inputClass}>
+                <option value="">Selecione...</option>
+                {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+            <Field label="Tamanho do shorts">
+              <select required value={shortsSize} onChange={(e) => setShortsSize(e.target.value)} className={inputClass}>
+                <option value="">Selecione...</option>
+                {sizeOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+          </div>
+        )}
+
         <Field label="Foto de identificação">
           <input
             type="file"
