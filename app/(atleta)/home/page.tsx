@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { categoryStyles, type CategoryKey } from '@/lib/design-tokens'
-import { todayInBrazil } from '@/lib/utils/date'
+import { todayInBrazil, monthsAheadInBrazil } from '@/lib/utils/date'
 import { TournamentHistoryPanel } from '@/components/home/TournamentHistoryPanel'
 import { UpcomingTournamentsPanel } from '@/components/home/UpcomingTournamentsPanel'
 import { SponsorsPanel } from '@/components/home/SponsorsPanel'
@@ -48,6 +48,7 @@ export default async function HomePage() {
   }
 
   const today = todayInBrazil()
+  const fourMonthsAhead = monthsAheadInBrazil(4)
 
   const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, { data: unreadRows }, thumbSigned] = await Promise.all([
     supabase
@@ -58,6 +59,7 @@ export default async function HomePage() {
       .from('tournaments')
       .select('id, name, city, state, start_date, status')
       .gte('end_date', today)
+      .lte('start_date', fourMonthsAhead)
       .order('start_date', { ascending: true })
       .limit(5),
     supabase
