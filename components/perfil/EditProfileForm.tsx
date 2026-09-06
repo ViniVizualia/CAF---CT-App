@@ -127,12 +127,14 @@ export function EditProfileForm({
         <input required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={inputClass} />
       </Field>
       <div className="flex gap-3">
-        <Field label="Cidade">
+        <label className="flex flex-col gap-1 text-sm flex-1">
+          <span className="text-[var(--color-text-muted)]">Cidade</span>
           <input required value={city} onChange={(e) => setCity(e.target.value)} className={inputClass} />
-        </Field>
-        <Field label="Estado">
-          <input required maxLength={2} value={state} onChange={(e) => setState(e.target.value.toUpperCase())} className={inputClass} />
-        </Field>
+        </label>
+        <label className="flex flex-col gap-1 text-sm w-20 shrink-0">
+          <span className="text-[var(--color-text-muted)]">Estado</span>
+          <input required maxLength={2} value={state} onChange={(e) => setState(e.target.value.toUpperCase())} className={`${inputClass} w-full`} />
+        </label>
       </div>
       <Field label="Instagram (opcional)">
         <input value={instagram} onChange={(e) => setInstagram(e.target.value)} className={inputClass} />
