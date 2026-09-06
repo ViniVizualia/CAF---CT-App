@@ -6,6 +6,7 @@ import { TournamentHistoryPanel } from '@/components/home/TournamentHistoryPanel
 import { UpcomingTournamentsPanel } from '@/components/home/UpcomingTournamentsPanel'
 import { SponsorsPanel } from '@/components/home/SponsorsPanel'
 import { InstagramPanel } from '@/components/home/InstagramPanel'
+import { BehaviorReportsAthleteBox } from '@/components/behavior/BehaviorReportsAthleteBox'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,6 +132,7 @@ export default async function HomePage() {
           <div className="rounded-[var(--radius-md)] border border-white/10 p-5">
             <UpcomingTournamentsPanel items={upcoming ?? []} />
           </div>
+          <BehaviorReportsAthleteBox athleteId={athlete.id} />
           <SponsorsPanel />
           <InstagramPanel />
         </aside>
