@@ -7,15 +7,6 @@ import { BracketManager } from '@/components/bracket/BracketManager'
 
 export const dynamic = 'force-dynamic'
 
-const CATEGORY_ORDER = [
-  'Estreante',
-  'Iniciante',
-  'Intermediário',
-  'Amador C',
-  'Amador B',
-  'Qualifier',
-]
-
 function formatInstagram(handle: string) {
   const clean = handle.replace('@', '').trim()
   return { display: `@${clean}`, url: `https://instagram.com/${clean}` }
@@ -60,7 +51,13 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     : { data: [] as any[] }
 
   const categorySchedule = (tournament.category_schedule ?? {}) as Record<string, { date?: string; time?: string }>
-  const scheduledCategories = CATEGORY_ORDER.filter((c) => categorySchedule[c]?.date || categorySchedule[c]?.time)
+  const scheduledCategories = Object.keys(categorySchedule)
+    .filter((c) => categorySchedule[c]?.date || categorySchedule[c]?.time)
+    .sort((a, b) => {
+      const keyA = `${categorySchedule[a]?.date ?? ''}${categorySchedule[a]?.time ?? ''}`
+      const keyB = `${categorySchedule[b]?.date ?? ''}${categorySchedule[b]?.time ?? ''}`
+      return keyA.localeCompare(keyB)
+    })
 
   const hasVenueInfo = tournament.venue_name || tournament.venue_address || tournament.maps_link
   const hasInstagrams = tournament.event_instagram || tournament.venue_instagram
