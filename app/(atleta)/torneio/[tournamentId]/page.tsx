@@ -25,7 +25,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, city, state, start_date, end_date, status, prize_info, category_whatsapp_links')
+    .select('id, name, city, state, start_date, end_date, status, prize_info, category_whatsapp_links, category_schedule, logo_path, venue_name, venue_address, maps_link')
     .eq('id', tournamentId)
     .single()
 
@@ -89,15 +89,47 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const showRegistrationSection = !myEnrollment && !['finished', 'canceled'].includes(tournament.status)
 
+  const categorySchedule = (tournament.category_schedule ?? {}) as Record<string, { date?: string; time?: string }>
+  const categoryOptions = Object.keys(categorySchedule).sort((a, b) => {
+    const keyA = `${categorySchedule[a]?.date ?? ''}${categorySchedule[a]?.time ?? ''}`
+    const keyB = `${categorySchedule[b]?.date ?? ''}${categorySchedule[b]?.time ?? ''}`
+    return keyA.localeCompare(keyB)
+  })
+
+  const logoUrl = tournament.logo_path
+    ? supabase.storage.from('tournament-logos').getPublicUrl(tournament.logo_path).data.publicUrl
+    : null
+
+  const hasVenueInfo = tournament.venue_name || tournament.venue_address || tournament.maps_link
+
   return (
     <main className="min-h-screen px-6 py-8 max-w-md mx-auto flex flex-col gap-6">
       <a href="/home" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
+
+      {logoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt={`Logo ${tournament.name}`} className="w-20 h-20 rounded-[var(--radius-sm)] object-contain bg-black/20 self-center" />
+      )}
+
       <div>
         <h1 className="text-2xl font-semibold">{tournament.name}</h1>
         <p className="text-sm text-[var(--color-text-muted)]">
           {tournament.city}/{tournament.state} · {new Date(tournament.start_date).toLocaleDateString('pt-BR')} a {new Date(tournament.end_date).toLocaleDateString('pt-BR')}
         </p>
       </div>
+
+      {hasVenueInfo && (
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
+          <p className="text-sm font-medium mb-1">Local do evento</p>
+          {tournament.venue_name && <p className="text-sm">{tournament.venue_name}</p>}
+          {tournament.venue_address && <p className="text-sm text-[var(--color-text-muted)]">{tournament.venue_address}</p>}
+          {tournament.maps_link && (
+            <a href={tournament.maps_link} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--color-primary)] underline">
+              Ver no Google Maps
+            </a>
+          )}
+        </div>
+      )}
 
       <TournamentMessagesBox messages={messages ?? []} />
 
@@ -115,7 +147,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
             {myLatestRequest?.status === 'recusado' && (
               <p className="text-sm text-[var(--color-danger)]">Sua última solicitação foi recusada pelo organizador. Você pode tentar novamente:</p>
             )}
-            <TournamentRegistrationForm tournamentId={tournamentId} />
+            <TournamentRegistrationForm tournamentId={tournamentId} categoryOptions={categoryOptions} />
           </>
         )
       )}
