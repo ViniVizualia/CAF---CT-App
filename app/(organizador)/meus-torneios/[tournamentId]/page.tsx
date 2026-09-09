@@ -77,6 +77,13 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
   const appeals = (appealsRaw ?? []).map((a: any) => ({ ...a, filed_by_name: nameByProfile.get(a.filed_by_profile_id) ?? null }))
 
+  const categorySchedule = (tournament.category_schedule ?? {}) as Record<string, { date?: string; time?: string }>
+  const categoryNames = Object.keys(categorySchedule).sort((a, b) => {
+    const keyA = `${categorySchedule[a]?.date ?? ''}${categorySchedule[a]?.time ?? ''}`
+    const keyB = `${categorySchedule[b]?.date ?? ''}${categorySchedule[b]?.time ?? ''}`
+    return keyA.localeCompare(keyB)
+  })
+
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
       <a href="/meus-torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
@@ -100,8 +107,8 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
       <LogoUploader tournamentId={tournamentId} initialLogoPath={tournament.logo_path} />
       <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
-      <WhatsAppLinksEditor tournamentId={tournamentId} initialLinks={tournament.category_whatsapp_links} />
-      <FullCategoriesEditor tournamentId={tournamentId} initialFull={tournament.full_categories} />
+      <WhatsAppLinksEditor tournamentId={tournamentId} categoryNames={categoryNames} initialLinks={tournament.category_whatsapp_links} />
+      <FullCategoriesEditor tournamentId={tournamentId} categoryNames={categoryNames} initialFull={tournament.full_categories} />
 
       <div className="mb-8">
         <RegistrationRequestsPanel requests={registrationRequests ?? []} />
