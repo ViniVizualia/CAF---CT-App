@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { CreateTournamentForm } from '@/components/admin/CreateTournamentForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,7 +55,7 @@ export default async function MeusTorneiosPage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 mb-10">
         {(tournaments ?? []).map((t) => {
           const athleteCount = athleteCountByTournament.get(t.id) ?? 0
           const pendingCount = pendingCountByTournament.get(t.id) ?? 0
@@ -82,6 +83,9 @@ export default async function MeusTorneiosPage() {
           <p className="text-sm text-[var(--color-text-muted)]">Nenhum torneio autorizado ainda.</p>
         )}
       </div>
+
+      <h2 className="text-lg font-medium mb-3">Criar torneio</h2>
+      <CreateTournamentForm />
     </main>
   )
 }
