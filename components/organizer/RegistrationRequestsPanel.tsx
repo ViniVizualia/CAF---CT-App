@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 
 interface RequestRow {
   id: string
-  category_name: string
+  custom_category_name: string | null
   athlete_1_name: string
   athlete_1_caf: number | null
-  athlete_2_name: string
+  athlete_2_name: string | null
   athlete_2_caf: number | null
   request_type: 'inscricao' | 'interesse'
   status: 'pendente' | 'aprovado' | 'recusado'
@@ -32,6 +32,10 @@ export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[]
   const pending = requests.filter((r) => r.status === 'pendente')
   const reviewed = requests.filter((r) => r.status !== 'pendente')
 
+  function names(r: RequestRow) {
+    return r.athlete_2_name ? `${r.athlete_1_name} / ${r.athlete_2_name}` : `${r.athlete_1_name} (sozinho, aguardando dupla)`
+  }
+
   async function handleReview(id: string, approve: boolean) {
     setLoading(id); setError(null)
     const { error } = await createClient().rpc('review_tournament_registration_request', {
@@ -53,13 +57,13 @@ export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[]
         {pending.map((r) => (
           <div key={r.id} className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-3 text-sm">
             <div className="flex justify-between items-start mb-1">
-              <span className="font-medium">{r.athlete_1_name} / {r.athlete_2_name}</span>
+              <span className="font-medium">{names(r)}</span>
               <span className="text-xs font-medium" style={{ color: r.request_type === 'interesse' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
                 {typeLabel[r.request_type]}
               </span>
             </div>
             <p className="text-xs text-[var(--color-text-muted)] mb-2">
-              Categoria: {r.category_name} · {new Date(r.created_at).toLocaleDateString('pt-BR')}
+              Categoria: {r.custom_category_name ?? '—'} · {new Date(r.created_at).toLocaleDateString('pt-BR')}
             </p>
             <div className="flex gap-2">
               <button onClick={() => handleReview(r.id, true)} disabled={loading === r.id} className="text-xs rounded-[var(--radius-sm)] bg-[var(--color-success)] text-white px-3 py-1.5 disabled:opacity-60">
@@ -80,7 +84,7 @@ export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[]
             {reviewed.map((r) => (
               <div key={r.id} className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-2 text-xs">
                 <div className="flex justify-between">
-                  <span>{r.athlete_1_name} / {r.athlete_2_name} · {r.category_name}</span>
+                  <span>{names(r)} · {r.custom_category_name ?? '—'}</span>
                   <span style={{ color: statusColor[r.status] }}>{statusLabel[r.status]}</span>
                 </div>
               </div>
