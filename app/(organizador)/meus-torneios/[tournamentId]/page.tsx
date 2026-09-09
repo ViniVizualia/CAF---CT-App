@@ -9,6 +9,7 @@ import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { AttendancePanel } from '@/components/organizer/AttendancePanel'
 import { FullCategoriesEditor } from '@/components/organizer/FullCategoriesEditor'
 import { RegistrationRequestsPanel } from '@/components/organizer/RegistrationRequestsPanel'
+import { TournamentTeams } from '@/components/admin/TournamentTeams'
 import { BracketManager } from '@/components/bracket/BracketManager'
 import { BracketExportPanel } from '@/components/bracket/BracketExportPanel'
 
@@ -31,6 +32,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const [
     { data: athletes }, { data: feedback }, { data: categories }, { data: teams },
     { data: brackets }, { data: attendance }, { data: messages }, { data: registrationRequests },
+    { data: linkedAthletesRaw },
   ] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
@@ -50,6 +52,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
     supabase.from('tournament_athletes_presence').select('athlete_id, full_name, caf_number, presence_status').eq('tournament_id', tournamentId),
     supabase.from('tournament_messages').select('id, athlete_id, message, created_at, read_at').eq('tournament_id', tournamentId).order('created_at', { ascending: false }),
     supabase.rpc('get_tournament_registration_requests', { p_tournament_id: tournamentId }),
+    supabase
+      .from('tournament_athletes')
+      .select('athlete_id, category_at_tournament, athletes(id, full_name, caf_number)')
+      .eq('tournament_id', tournamentId),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
@@ -83,6 +89,8 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
     const keyB = `${categorySchedule[b]?.date ?? ''}${categorySchedule[b]?.time ?? ''}`
     return keyA.localeCompare(keyB)
   })
+
+  const linkedAthletesWithCategory = (linkedAthletesRaw ?? []).map((r: any) => ({ ...r.athletes, category_at_tournament: r.category_at_tournament }))
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
@@ -126,6 +134,15 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       </div>
 
       <div className="mb-8">
+        <TournamentTeams
+          tournamentId={tournamentId}
+          categories={categories ?? []}
+          linkedAthletes={linkedAthletesWithCategory}
+          teams={allTeams}
+        />
+      </div>
+
+      <div className="mb-8">
         <AttendancePanel tournamentId={tournamentId} rows={attendance ?? []} />
       </div>
 
@@ -149,7 +166,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       <div className="flex flex-col gap-6 mb-8">
         <h2 className="text-lg font-medium">Chaveamento</h2>
         {categoriesWithTeams.length === 0 && (
-          <p className="text-sm text-[var(--color-text-muted)]">Nenhuma dupla formada ainda — fale com o Super Admin.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Nenhuma dupla formada ainda.</p>
         )}
         {categoriesWithTeams.map((category: any) => {
           const categoryTeams = allTeams
