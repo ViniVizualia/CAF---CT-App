@@ -6,17 +6,11 @@ import { createClient } from '@/lib/supabase/client'
 
 const inputClass = 'rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-3 py-2 text-sm'
 
-const CATEGORIES = [
-  'Estreante',
-  'Iniciante',
-  'Intermediário',
-  'Amador C',
-  'Amador B',
-  'Amador A',
-  'Qualifier',
-] as const
-
-type CategorySchedule = Record<string, { date: string; time: string }>
+interface CategoryScheduleRow {
+  name: string
+  date: string
+  time: string
+}
 
 export function CreateTournamentForm() {
   const router = useRouter()
@@ -31,18 +25,20 @@ export function CreateTournamentForm() {
   const [mapsLink, setMapsLink] = useState('')
   const [eventInstagram, setEventInstagram] = useState('')
   const [venueInstagram, setVenueInstagram] = useState('')
-  const [categorySchedule, setCategorySchedule] = useState<CategorySchedule>({})
+  const [categoryRows, setCategoryRows] = useState<CategoryScheduleRow[]>([{ name: '', date: '', time: '' }])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function updateCategorySchedule(category: string, field: 'date' | 'time', value: string) {
-    setCategorySchedule((prev) => ({
-      ...prev,
-      [category]: {
-        date: field === 'date' ? value : prev[category]?.date ?? '',
-        time: field === 'time' ? value : prev[category]?.time ?? '',
-      },
-    }))
+  function updateCategoryRow(index: number, field: keyof CategoryScheduleRow, value: string) {
+    setCategoryRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+  }
+
+  function addCategoryRow() {
+    setCategoryRows((prev) => [...prev, { name: '', date: '', time: '' }])
+  }
+
+  function removeCategoryRow(index: number) {
+    setCategoryRows((prev) => prev.filter((_, i) => i !== index))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,11 +46,16 @@ export function CreateTournamentForm() {
     setLoading(true)
     setError(null)
 
-    const cleanSchedule = Object.fromEntries(
-      Object.entries(categorySchedule).filter(([, v]) => v.date || v.time)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const categorySchedule = Object.fromEntries(
+      categoryRows
+        .filter((row) => row.name.trim() && (row.date || row.time))
+        .map((row) => [row.name.trim(), { date: row.date, time: row.time }])
     )
 
-    const { error } = await createClient().from('tournaments').insert({
+    const { error } = await supabase.from('tournaments').insert({
       name,
       city,
       state,
@@ -67,13 +68,14 @@ export function CreateTournamentForm() {
       maps_link: mapsLink || null,
       event_instagram: eventInstagram || null,
       venue_instagram: venueInstagram || null,
-      category_schedule: cleanSchedule,
+      category_schedule: categorySchedule,
+      created_by: user?.id ?? null,
     })
     setLoading(false)
     if (error) return setError(error.message)
     setName(''); setCity(''); setState(''); setStartDate(''); setEndDate('')
     setResponsibleName(''); setVenueName(''); setVenueAddress(''); setMapsLink('')
-    setEventInstagram(''); setVenueInstagram(''); setCategorySchedule({})
+    setEventInstagram(''); setVenueInstagram(''); setCategoryRows([{ name: '', date: '', time: '' }])
     router.refresh()
   }
 
@@ -144,24 +146,39 @@ export function CreateTournamentForm() {
       </div>
 
       <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
-        <p className="text-xs text-[var(--color-text-muted)]">Dias e horários por categoria (pode preencher depois)</p>
-        {CATEGORIES.map((category) => (
-          <div key={category} className="flex items-center gap-2">
-            <span className="text-xs w-28 shrink-0">{category}</span>
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Dias e horários por categoria (pode preencher depois — crie quantas categorias quiser, inclusive combinadas, ex: "Misto Estreante")
+        </p>
+        {categoryRows.map((row, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <input
+              placeholder="Nome da categoria"
+              value={row.name}
+              onChange={(e) => updateCategoryRow(index, 'name', e.target.value)}
+              className={`${inputClass} flex-1`}
+            />
             <input
               type="date"
-              value={categorySchedule[category]?.date ?? ''}
-              onChange={(e) => updateCategorySchedule(category, 'date', e.target.value)}
+              value={row.date}
+              onChange={(e) => updateCategoryRow(index, 'date', e.target.value)}
               className={`${inputClass} flex-1`}
             />
             <input
               type="time"
-              value={categorySchedule[category]?.time ?? ''}
-              onChange={(e) => updateCategorySchedule(category, 'time', e.target.value)}
+              value={row.time}
+              onChange={(e) => updateCategoryRow(index, 'time', e.target.value)}
               className={`${inputClass} flex-1`}
             />
+            {categoryRows.length > 1 && (
+              <button type="button" onClick={() => removeCategoryRow(index)} className="text-xs text-[var(--color-danger)] px-1">
+                ✕
+              </button>
+            )}
           </div>
         ))}
+        <button type="button" onClick={addCategoryRow} className="self-start text-xs text-[var(--color-primary)] underline">
+          + Adicionar categoria
+        </button>
       </div>
 
       {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
