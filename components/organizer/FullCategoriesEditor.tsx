@@ -4,21 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-const CATEGORIES = [
-  'Estreante',
-  'Iniciante',
-  'Intermediário',
-  'Amador C',
-  'Amador B',
-  'Qualifier',
-] as const
-
 interface Props {
   tournamentId: string
+  categoryNames: string[]
   initialFull: Record<string, boolean> | null
 }
 
-export function FullCategoriesEditor({ tournamentId, initialFull }: Props) {
+export function FullCategoriesEditor({ tournamentId, categoryNames, initialFull }: Props) {
   const router = useRouter()
   const [full, setFull] = useState<Record<string, boolean>>(initialFull ?? {})
   const [loading, setLoading] = useState(false)
@@ -48,16 +40,22 @@ export function FullCategoriesEditor({ tournamentId, initialFull }: Props) {
       <p className="text-xs text-[var(--color-text-muted)] mb-3">
         Marque as categorias já esgotadas. Novas solicitações nelas entram como "interesse" em vez de inscrição.
       </p>
-      <div className="flex flex-col gap-2 mb-3">
-        {CATEGORIES.map((category) => (
-          <label key={category} className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={!!full[category]} onChange={() => toggle(category)} />
-            {category}
-          </label>
-        ))}
-      </div>
+      {categoryNames.length > 0 ? (
+        <div className="flex flex-col gap-2 mb-3">
+          {categoryNames.map((category) => (
+            <label key={category} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={!!full[category]} onChange={() => toggle(category)} />
+              {category}
+            </label>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-[var(--color-text-muted)] mb-3">
+          Nenhuma categoria cadastrada ainda — preencha "Dias e horários por categoria" na criação do torneio primeiro.
+        </p>
+      )}
       <div className="flex items-center gap-3">
-        <button onClick={handleSave} disabled={loading} className="rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white px-4 py-2 text-sm font-medium disabled:opacity-60">
+        <button onClick={handleSave} disabled={loading || categoryNames.length === 0} className="rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-white px-4 py-2 text-sm font-medium disabled:opacity-60">
           {loading ? 'Salvando...' : 'Salvar'}
         </button>
         {saved && <span className="text-xs text-[var(--color-text-muted)]">Salvo ✓</span>}
