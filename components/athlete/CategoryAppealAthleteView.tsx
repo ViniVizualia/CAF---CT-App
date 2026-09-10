@@ -7,6 +7,7 @@ interface Appeal {
   resolution_new_category_id: number | null
   resolution_note: string | null
   resolved_at: string | null
+  filed_by_name?: string | null
 }
 
 interface Props {
@@ -27,6 +28,7 @@ export function CategoryAppealAthleteView({ categories, appeals }: Props) {
           <div key={a.id} className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-3 text-sm">
             <p className="text-xs text-[var(--color-text-muted)] mb-1">
               {new Date(a.created_at).toLocaleDateString('pt-BR')} · categoria na época: {a.category_at_time_name ?? '—'}
+              {a.filed_by_name && ` · reportado por ${a.filed_by_name}`}
             </p>
             <p className="text-[var(--color-text-muted)]">{a.message}</p>
             {a.resolved_at && (
