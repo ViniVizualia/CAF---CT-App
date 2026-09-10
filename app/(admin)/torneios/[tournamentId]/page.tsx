@@ -69,10 +69,17 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     : { data: [] as any[] }
 
   const filedByIds = [...new Set((appealsRaw ?? []).map((a: any) => a.filed_by_profile_id))]
-  const { data: organizersData } = filedByIds.length
-    ? await supabase.from('organizers').select('profile_id, name').in('profile_id', filedByIds)
-    : { data: [] as any[] }
-  const nameByProfile = new Map((organizersData ?? []).map((o: any) => [o.profile_id, o.name]))
+  const [{ data: organizersData }, { data: athleteFilersData }] = await Promise.all([
+    filedByIds.length
+      ? supabase.from('organizers').select('profile_id, name').in('profile_id', filedByIds)
+      : Promise.resolve({ data: [] as any[] }),
+    filedByIds.length
+      ? supabase.rpc('get_athlete_names_by_profile', { p_profile_ids: filedByIds })
+      : Promise.resolve({ data: [] as any[] }),
+  ])
+  const nameByProfile = new Map<string, string>()
+  for (const o of organizersData ?? []) nameByProfile.set(o.profile_id, o.name)
+  for (const a of athleteFilersData ?? []) if (!nameByProfile.has(a.profile_id)) nameByProfile.set(a.profile_id, a.full_name)
   const athleteNameById = new Map(linkedAthletesWithCategory.map((a: any) => [a.id, a.full_name]))
 
   const appeals = (appealsRaw ?? []).map((a: any) => ({
