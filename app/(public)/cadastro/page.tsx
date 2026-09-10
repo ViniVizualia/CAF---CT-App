@@ -77,19 +77,46 @@ export default function CadastroPage() {
     const supabase = createClient()
 
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-      if (signUpError) throw signUpError
+      let userId: string
 
-      if (!signUpData.session) {
-        setError('Conta criada! Confirme seu e-mail e depois entre para concluir o cadastro.')
-        setLoading(false)
-        return
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password })
+
+      if (signUpError) {
+        const alreadyRegistered = signUpError.message.toLowerCase().includes('already registered')
+        if (!alreadyRegistered) throw signUpError
+
+        // E-mail já tem conta — provavelmente uma tentativa anterior criou o login
+        // mas não terminou de gravar o cadastro do atleta. Tenta continuar de onde parou.
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+
+        if (signInError) {
+          if (signInError.message.toLowerCase().includes('email not confirmed')) {
+            throw new Error('Este e-mail já tem uma conta criada, mas ainda não confirmada. Verifique sua caixa de entrada para confirmar antes de continuar.')
+          }
+          throw new Error('Este e-mail já possui uma conta CAF. Se a senha não confere, use "Esqueci minha senha" na tela de login, ou fale com o suporte.')
+        }
+
+        userId = signInData.user.id
+
+        const { data: existingAthlete } = await supabase
+          .from('athletes')
+          .select('id')
+          .eq('profile_id', userId)
+          .maybeSingle()
+
+        if (existingAthlete) {
+          setError('Você já tem um cadastro CAF completo. Faça login normalmente.')
+          setLoading(false)
+          return
+        }
+      } else {
+        if (!signUpData.session) {
+          setError('Conta criada! Confirme seu e-mail e depois entre para concluir o cadastro.')
+          setLoading(false)
+          return
+        }
+        userId = signUpData.session.user.id
       }
-
-      const userId = signUpData.session.user.id
 
       const [profileBlob, thumbBlob] = await Promise.all([
         resizeImageToWebp(photo, 600, 0.85),
