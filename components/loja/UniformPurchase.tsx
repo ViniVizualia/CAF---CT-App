@@ -68,4 +68,19 @@ export function UniformPurchase() {
       </div>
 
       {link ? (
-        
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-center rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-3 font-medium"
+        >
+          Continuar para pagamento
+        </a>
+      ) : (
+        <div className="text-center rounded-[var(--radius-md)] border border-white/15 text-[var(--color-text-muted)] py-3 font-medium">
+          Em breve disponível para compra
+        </div>
+      )}
+    </div>
+  )
+}
