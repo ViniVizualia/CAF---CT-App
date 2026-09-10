@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { TournamentFeedbackForm } from '@/components/feedback/TournamentFeedbackForm'
 import { BracketView } from '@/components/bracket/BracketView'
 import { CategoryAppealAthleteView } from '@/components/athlete/CategoryAppealAthleteView'
+import { ReportCategoryAppealForm } from '@/components/athlete/ReportCategoryAppealForm'
 import { TournamentMessagesBox } from '@/components/athlete/TournamentMessagesBox'
 import { TournamentRegistrationForm } from '@/components/athlete/TournamentRegistrationForm'
 
@@ -32,7 +33,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
   if (!tournament) notFound()
 
   const [
-    { data: categories }, { data: teams }, { data: brackets }, { data: appeals },
+    { data: categories }, { data: teams }, { data: brackets }, { data: appealsRaw },
     { data: myEnrollment }, { data: messages }, { data: myLatestRequest },
   ] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
@@ -67,6 +68,17 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .limit(1)
       .maybeSingle(),
   ])
+
+  const nonAnonymousProfileIds = [...new Set((appealsRaw ?? []).filter((a: any) => !a.is_anonymous).map((a: any) => a.filed_by_profile_id))]
+  const { data: filerAthletes } = nonAnonymousProfileIds.length
+    ? await supabase.rpc('get_athlete_names_by_profile', { p_profile_ids: nonAnonymousProfileIds })
+    : { data: [] as any[] }
+  const athleteNameByProfile = new Map((filerAthletes ?? []).map((a: any) => [a.profile_id, a.full_name]))
+
+  const appeals = (appealsRaw ?? []).map((a: any) => ({
+    ...a,
+    filed_by_name: !a.is_anonymous ? (athleteNameByProfile.get(a.filed_by_profile_id) ?? null) : null,
+  }))
 
   const allTeams = (teams ?? []).map((t: any) => ({
     id: t.id,
@@ -170,7 +182,9 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
         </a>
       )}
 
-      <CategoryAppealAthleteView categories={categories ?? []} appeals={appeals ?? []} />
+      <CategoryAppealAthleteView categories={categories ?? []} appeals={appeals} />
+
+      {myEnrollment && <ReportCategoryAppealForm tournamentId={tournamentId} />}
 
       {categoriesWithBrackets.length > 0 && (
         <div className="flex flex-col gap-4">
