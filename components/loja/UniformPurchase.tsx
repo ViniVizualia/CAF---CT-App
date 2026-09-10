@@ -21,7 +21,7 @@ export function UniformPurchase() {
   return (
     <div className="flex flex-col gap-6">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/IMG_0351.png" alt="Uniforme oficial CAF" className="w-full rounded-[var(--radius-md)] bg-white p-4" />
+      <img src="/00903BE8-1DF7-4EC6-989A-8D228407C2BB.png" alt="Uniforme oficial CAF — em breve" className="w-full rounded-[var(--radius-md)]" />
 
       <div>
         <h1 className="text-xl font-semibold">Uniforme Oficial CAF</h1>
@@ -68,19 +68,4 @@ export function UniformPurchase() {
       </div>
 
       {link ? (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-center rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-3 font-medium"
-        >
-          Continuar para pagamento
-        </a>
-      ) : (
-        <div className="text-center rounded-[var(--radius-md)] border border-white/15 text-[var(--color-text-muted)] py-3 font-medium">
-          Em breve disponível para compra
-        </div>
-      )}
-    </div>
-  )
-}
+        
