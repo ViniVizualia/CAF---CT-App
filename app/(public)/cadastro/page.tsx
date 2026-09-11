@@ -44,6 +44,7 @@ export default function CadastroPage() {
   const [instagram, setInstagram] = useState('')
   const [categoryId, setCategoryId] = useState(1)
   const [photo, setPhoto] = useState<File | null>(null)
+  const [photoConfirmed, setPhotoConfirmed] = useState(false)
   const [gender, setGender] = useState<'masculino' | 'feminino'>('masculino')
   const [uniformSize, setUniformSize] = useState('')
   const [shirtSize, setShirtSize] = useState('')
@@ -55,6 +56,11 @@ export default function CadastroPage() {
 
     if (!photo) {
       setError('Envie uma foto de identificação.')
+      return
+    }
+
+    if (!photoConfirmed) {
+      setError('Confirme que a foto segue as regras de identificação antes de enviar.')
       return
     }
 
@@ -85,8 +91,6 @@ export default function CadastroPage() {
         const alreadyRegistered = signUpError.message.toLowerCase().includes('already registered')
         if (!alreadyRegistered) throw signUpError
 
-        // E-mail já tem conta — provavelmente uma tentativa anterior criou o login
-        // mas não terminou de gravar o cadastro do atleta. Tenta continuar de onde parou.
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
         if (signInError) {
@@ -155,7 +159,14 @@ export default function CadastroPage() {
 
       router.push('/home')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Algo deu errado. Tente novamente.')
+      console.error('Erro no cadastro:', err)
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+          ? String((err as any).message)
+          : 'Algo deu errado. Tente novamente.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -168,7 +179,7 @@ export default function CadastroPage() {
 
       <h1 className="text-2xl font-semibold mb-1">Criar meu cadastro CAF</h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
-        Depois de enviado, seu cadastro fica em análise até ser aprovado.
+        Seu cadastro é liberado imediatamente após o envio.
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -261,6 +272,18 @@ export default function CadastroPage() {
             Foto atual, de frente, rosto visível, sem óculos escuros ou boné.
           </p>
         </Field>
+
+        <label className="flex items-start gap-2 text-xs text-[var(--color-text-muted)]">
+          <input
+            type="checkbox"
+            checked={photoConfirmed}
+            onChange={(e) => setPhotoConfirmed(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            Confirmo que a foto enviada é minha, atual, tirada de frente, com o rosto totalmente visível e sem óculos escuros, boné ou outro item que cubra o rosto. Sei que meu cadastro é liberado imediatamente e que dados incorretos podem levar ao bloqueio da carteirinha.
+          </span>
+        </label>
 
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
 
