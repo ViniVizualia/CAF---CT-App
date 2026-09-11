@@ -58,6 +58,7 @@ export default async function HomePage() {
     supabase
       .from('tournaments')
       .select('id, name, city, state, start_date, status')
+      .eq('visible_to_athletes', true)
       .gte('end_date', today)
       .lte('start_date', fourMonthsAhead)
       .order('start_date', { ascending: true })
