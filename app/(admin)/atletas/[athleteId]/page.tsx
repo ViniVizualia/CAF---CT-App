@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ApprovalActions } from '@/components/admin/ApprovalActions'
+import { SendAthleteNoticeForm } from '@/components/admin/SendAthleteNoticeForm'
 
 export default async function AthleteAnalysisPage({ params }: { params: Promise<{ athleteId: string }> }) {
   const { athleteId } = await params
@@ -23,6 +24,12 @@ export default async function AthleteAnalysisPage({ params }: { params: Promise<
   const { data: history } = await supabase
     .from('athlete_category_history')
     .select('reason, created_at, previous:previous_category_id(name), new:new_category_id(name)')
+    .eq('athlete_id', athleteId)
+    .order('created_at', { ascending: false })
+
+  const { data: notices } = await supabase
+    .from('athlete_notices')
+    .select('id, message, created_at, read_at')
     .eq('athlete_id', athleteId)
     .order('created_at', { ascending: false })
 
@@ -58,6 +65,9 @@ export default async function AthleteAnalysisPage({ params }: { params: Promise<
         </div>
       </div>
       <ApprovalActions athleteId={athlete.id} declaredCategoryId={athlete.declared_category_id} currentStatus={athlete.status} />
+
+      <SendAthleteNoticeForm athleteId={athlete.id} notices={notices ?? []} />
+
       {history && history.length > 0 && (
         <div className="mt-8">
           <h2 className="text-sm font-medium mb-2">Histórico de categoria</h2>
