@@ -8,6 +8,7 @@ import { UpcomingTournamentsPanel } from '@/components/home/UpcomingTournamentsP
 import { SponsorsPanel } from '@/components/home/SponsorsPanel'
 import { InstagramPanel } from '@/components/home/InstagramPanel'
 import { BehaviorReportsAthleteBox } from '@/components/behavior/BehaviorReportsAthleteBox'
+import { AthleteNoticeBanner } from '@/components/athlete/AthleteNoticeBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,7 +51,7 @@ export default async function HomePage() {
   const today = todayInBrazil()
   const fourMonthsAhead = monthsAheadInBrazil(4)
 
-  const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, { data: unreadRows }, thumbSigned] = await Promise.all([
+  const [{ data: historyRows }, { data: upcoming }, { data: presenceRows }, { data: unreadRows }, { data: notices }, thumbSigned] = await Promise.all([
     supabase
       .from('tournament_athletes')
       .select('tournaments(id, name, city, state, start_date, end_date, status)')
@@ -72,6 +73,12 @@ export default async function HomePage() {
       .select('tournament_id')
       .eq('athlete_id', athlete.id)
       .is('read_at', null),
+    supabase
+      .from('athlete_notices')
+      .select('id, message, created_at')
+      .eq('athlete_id', athlete.id)
+      .is('read_at', null)
+      .order('created_at', { ascending: true }),
     athlete.thumbnail_path
       ? supabase.storage.from('athlete-thumbnails').createSignedUrl(athlete.thumbnail_path, 3600)
       : Promise.resolve({ data: null } as any),
@@ -100,6 +107,8 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen px-6 py-8 max-w-5xl mx-auto">
+      <AthleteNoticeBanner notices={notices ?? []} />
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <p className="text-sm text-[var(--color-text-muted)]">Olá,</p>
