@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { EditTournamentForm } from '@/components/organizer/EditTournamentForm'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 import { LogoUploader } from '@/components/organizer/LogoUploader'
 import { WhatsAppLinksEditor } from '@/components/organizer/WhatsAppLinksEditor'
@@ -103,9 +104,26 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
       <a href="/meus-torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
       <h1 className="text-2xl font-semibold mt-4 mb-1">{tournament.name}</h1>
-      <p className="text-sm text-[var(--color-text-muted)] mb-8">
+      <p className="text-sm text-[var(--color-text-muted)] mb-2">
         {tournament.city}/{tournament.state} · {tournament.start_date} a {tournament.end_date}
       </p>
+
+      <EditTournamentForm
+        tournamentId={tournamentId}
+        initialName={tournament.name}
+        initialResponsibleName={tournament.responsible_name}
+        initialCity={tournament.city}
+        initialState={tournament.state}
+        initialStartDate={tournament.start_date}
+        initialEndDate={tournament.end_date}
+        initialVenueName={tournament.venue_name}
+        initialVenueAddress={tournament.venue_address}
+        initialMapsLink={tournament.maps_link}
+        initialEventInstagram={tournament.event_instagram}
+        initialVenueInstagram={tournament.venue_instagram}
+        initialCategorySchedule={tournament.category_schedule}
+        initialVisibleToAthletes={tournament.visible_to_athletes}
+      />
 
       <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4 mb-4">
         <p className="text-sm text-[var(--color-text-muted)] mb-3">{(athletes ?? []).length} atletas neste torneio</p>
