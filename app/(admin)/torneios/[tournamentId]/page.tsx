@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { TournamentAssignments } from '@/components/admin/TournamentAssignments'
 import { TournamentTeams } from '@/components/admin/TournamentTeams'
 import { CategoryAppealAdminPanel } from '@/components/admin/CategoryAppealAdminPanel'
+import { DeleteTournamentButton } from '@/components/admin/DeleteTournamentButton'
 import { BracketManager } from '@/components/bracket/BracketManager'
 
 export const dynamic = 'force-dynamic'
@@ -96,10 +97,14 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         {tournament.city}/{tournament.state} · {tournament.start_date} a {tournament.end_date} · {tournament.status}
       </p>
       {tournament.responsible_name && (
-        <p className="text-sm text-[var(--color-text-muted)] mb-6">
+        <p className="text-sm text-[var(--color-text-muted)] mb-3">
           Responsável pelo evento: <span className="text-white">{tournament.responsible_name}</span>
         </p>
       )}
+
+      <div className="mb-6">
+        <DeleteTournamentButton tournamentId={tournamentId} tournamentName={tournament.name} />
+      </div>
 
       {hasVenueInfo && (
         <div className="mb-6 rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-3">
