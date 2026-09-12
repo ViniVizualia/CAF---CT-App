@@ -14,6 +14,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "qrcode.react": "latest",
+    "qrcode": "latest",
     "jsqr": "latest",
     "dexie": "latest",
     "jspdf": "latest"
@@ -23,6 +24,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/qrcode": "latest",
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0"
   }
