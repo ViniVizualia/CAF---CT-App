@@ -5,6 +5,8 @@ import { TournamentTeams } from '@/components/admin/TournamentTeams'
 import { CategoryAppealAdminPanel } from '@/components/admin/CategoryAppealAdminPanel'
 import { DeleteTournamentButton } from '@/components/admin/DeleteTournamentButton'
 import { BracketManager } from '@/components/bracket/BracketManager'
+import { TrophyAwardPanel } from '@/components/trophy/TrophyAwardPanel'
+import { TrophyRequestsPanel } from '@/components/trophy/TrophyRequestsPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +30,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     { data: categories },
     { data: teams },
     { data: brackets },
+    { data: trophies },
+    { data: trophyRequests },
   ] = await Promise.all([
     supabase.from('organizers').select('id, name').eq('status', 'active'),
     supabase.from('tournament_organizers').select('organizer_id, organizers(id, name)').eq('tournament_id', tournamentId),
@@ -39,6 +43,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
       .select('id, category_id, athlete_1:athletes!tournament_teams_athlete_id_1_fkey(id, full_name, caf_number), athlete_2:athletes!tournament_teams_athlete_id_2_fkey(id, full_name, caf_number)')
       .eq('tournament_id', tournamentId),
     supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
+    supabase.from('athlete_trophies').select('team_id, medal').eq('tournament_id', tournamentId),
+    supabase.rpc('get_trophy_requests', { p_tournament_id: tournamentId }),
   ])
 
   const linkedOrganizerIds = (linkedOrganizers ?? []).map((r: any) => r.organizer_id)
@@ -88,6 +94,9 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     filed_by_name: nameByProfile.get(a.filed_by_profile_id) ?? null,
     athlete_name: athleteNameById.get(a.athlete_id) ?? '—',
   }))
+
+  const trophiesByTeamId: Record<string, string> = {}
+  for (const t of trophies ?? []) trophiesByTeamId[t.team_id] = t.medal
 
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
@@ -178,6 +187,10 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         <CategoryAppealAdminPanel categories={categories ?? []} appeals={appeals} />
       </div>
 
+      <div className="mt-10 pt-10 border-t border-white/10">
+        <TrophyRequestsPanel requests={trophyRequests ?? []} />
+      </div>
+
       <div className="mt-10 pt-10 border-t border-white/10 flex flex-col gap-6">
         <h2 className="text-lg font-medium">Chaveamento</h2>
         {categoriesWithTeams.length === 0 && (
@@ -190,15 +203,21 @@ export default async function TournamentDetailPage({ params }: { params: Promise
           const bracket = (brackets ?? []).find((b: any) => b.category_id === category.id) ?? null
           const matches = (bracketMatches ?? []).filter((m: any) => m.bracket_id === bracket?.id)
           return (
-            <BracketManager
-              key={category.id}
-              tournamentId={tournamentId}
-              categoryId={category.id}
-              categoryName={category.name}
-              teams={categoryTeams}
-              bracket={bracket}
-              matches={matches}
-            />
+            <div key={category.id}>
+              <BracketManager
+                tournamentId={tournamentId}
+                categoryId={category.id}
+                categoryName={category.name}
+                teams={categoryTeams}
+                bracket={bracket}
+                matches={matches}
+              />
+              <TrophyAwardPanel
+                categoryName={category.name}
+                teams={categoryTeams}
+                trophiesByTeam={trophiesByTeamId}
+              />
+            </div>
           )
         })}
       </div>
