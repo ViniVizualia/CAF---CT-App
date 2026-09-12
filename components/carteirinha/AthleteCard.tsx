@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { categoryStyles, type CategoryKey } from '@/lib/design-tokens'
+import { drawAthleteCard, canvasToDownload } from '@/lib/carteirinha/canvasRender'
 
 interface Trophy {
   medal: 'ouro' | 'prata' | 'bronze'
@@ -34,10 +35,36 @@ export function AthleteCard({
   fullName, cafNumber, categoryStyleKey, categoryLabel, validityDate, publicToken, photoUrl, trophies = [],
 }: AthleteCardProps) {
   const [flipped, setFlipped] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
   const style = categoryStyles[categoryStyleKey as CategoryKey] ?? categoryStyles.estreante
 
   const counts = { ouro: 0, prata: 0, bronze: 0 }
   for (const t of trophies) counts[t.medal] = (counts[t.medal] ?? 0) + 1
+
+  async function handleDownload() {
+    setDownloading(true)
+    setDownloadError(null)
+    try {
+      const canvas = document.createElement('canvas')
+      await drawAthleteCard(canvas, {
+        fullName,
+        cafNumber,
+        categoryLabel,
+        validityDate,
+        publicToken,
+        photoUrl,
+        gradientFrom: style.gradient[0],
+        gradientTo: style.gradient[1],
+        textColor: style.textOnCard,
+      })
+      canvasToDownload(canvas, `carteirinha-caf-${fullName.replace(/\s+/g, '_')}.png`)
+    } catch {
+      setDownloadError('Não foi possível gerar a imagem.')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-3">
@@ -132,9 +159,15 @@ export function AthleteCard({
         </div>
       </div>
 
-      <button onClick={() => setFlipped((f) => !f)} className="text-xs text-[var(--color-text-muted)] underline">
-        {flipped ? '← Ver frente' : 'Ver troféus (verso) →'}
-      </button>
+      <div className="flex items-center gap-4">
+        <button onClick={() => setFlipped((f) => !f)} className="text-xs text-[var(--color-text-muted)] underline">
+          {flipped ? '← Ver frente' : 'Ver troféus (verso) →'}
+        </button>
+        <button onClick={handleDownload} disabled={downloading} className="text-xs text-[var(--color-primary)] underline disabled:opacity-60">
+          {downloading ? 'Gerando...' : 'Baixar carteirinha'}
+        </button>
+      </div>
+      {downloadError && <p className="text-xs text-[var(--color-danger)]">{downloadError}</p>}
     </div>
   )
 }
