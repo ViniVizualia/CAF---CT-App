@@ -43,6 +43,18 @@ export default async function CarteirinhaPage() {
     photoUrl = data?.signedUrl ?? null
   }
 
+  const { data: trophiesRaw } = await supabase
+    .from('athlete_trophies')
+    .select('medal, category_name, tournaments(name)')
+    .eq('athlete_id', athlete.id)
+    .order('awarded_at', { ascending: false })
+
+  const trophies = (trophiesRaw ?? []).map((t: any) => ({
+    medal: t.medal,
+    categoryName: t.category_name,
+    tournamentName: t.tournaments?.name ?? null,
+  }))
+
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-10">
       <AthleteCard
@@ -53,6 +65,7 @@ export default async function CarteirinhaPage() {
         validityDate={athlete.validity_date}
         publicToken={athlete.public_token}
         photoUrl={photoUrl}
+        trophies={trophies}
       />
     </main>
   )
