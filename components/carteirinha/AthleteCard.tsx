@@ -167,6 +167,7 @@ export function AthleteCard({
           {downloading ? 'Gerando...' : 'Baixar carteirinha'}
         </button>
       </div>
+      <p className="text-[10px] text-[var(--color-text-muted)] opacity-70">Apenas a frente da carteirinha é baixada.</p>
       {downloadError && <p className="text-xs text-[var(--color-danger)]">{downloadError}</p>}
     </div>
   )
