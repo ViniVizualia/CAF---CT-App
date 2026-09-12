@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { todayInBrazil } from '@/lib/utils/date'
 import { EditTournamentForm } from '@/components/organizer/EditTournamentForm'
 import { PrizeEditor } from '@/components/organizer/PrizeEditor'
 import { LogoUploader } from '@/components/organizer/LogoUploader'
@@ -13,6 +14,9 @@ import { RegistrationRequestsPanel } from '@/components/organizer/RegistrationRe
 import { TournamentTeams } from '@/components/admin/TournamentTeams'
 import { BracketManager } from '@/components/bracket/BracketManager'
 import { BracketExportPanel } from '@/components/bracket/BracketExportPanel'
+import { TrophyAwardPanel } from '@/components/trophy/TrophyAwardPanel'
+import { TrophyReminderBanner } from '@/components/trophy/TrophyReminderBanner'
+import { TrophyRequestsPanel } from '@/components/trophy/TrophyRequestsPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +37,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const [
     { data: athletes }, { data: feedback }, { data: categories }, { data: teams },
     { data: brackets }, { data: attendance }, { data: messages }, { data: registrationRequests },
-    { data: linkedAthletesRaw },
+    { data: linkedAthletesRaw }, { data: trophies }, { data: trophyRequests },
   ] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
@@ -57,6 +61,8 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       .from('tournament_athletes')
       .select('athlete_id, category_at_tournament, athletes(id, full_name, caf_number)')
       .eq('tournament_id', tournamentId),
+    supabase.from('athlete_trophies').select('team_id, medal').eq('tournament_id', tournamentId),
+    supabase.rpc('get_trophy_requests', { p_tournament_id: tournamentId }),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
@@ -100,10 +106,30 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
   const linkedAthletesWithCategory = (linkedAthletesRaw ?? []).map((r: any) => ({ ...r.athletes, category_at_tournament: r.category_at_tournament }))
 
+  const trophiesByTeamId: Record<string, string> = {}
+  for (const t of trophies ?? []) trophiesByTeamId[t.team_id] = t.medal
+
+  const tournamentEnded = tournament.end_date < todayInBrazil()
+  const reminderCategories = tournamentEnded
+    ? categoriesWithTeams
+        .filter((category: any) => {
+          const bracket = (brackets ?? []).find((b: any) => b.category_id === category.id)
+          if (bracket?.status !== 'finished') return false
+          const teamsInCategory = allTeams.filter((t) => t.category_id === category.id)
+          return teamsInCategory.length > 0 && !teamsInCategory.some((t) => t.id in trophiesByTeamId)
+        })
+        .map((c: any) => ({ categoryName: c.name }))
+    : []
+
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
       <a href="/meus-torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
-      <h1 className="text-2xl font-semibold mt-4 mb-1">{tournament.name}</h1>
+
+      <div className="mt-4">
+        <TrophyReminderBanner categories={reminderCategories} />
+      </div>
+
+      <h1 className="text-2xl font-semibold mb-1">{tournament.name}</h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-2">
         {tournament.city}/{tournament.state} · {tournament.start_date} a {tournament.end_date}
       </p>
@@ -145,6 +171,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
 
       <div className="mb-8">
         <RegistrationRequestsPanel requests={registrationRequests ?? []} />
+      </div>
+
+      <div className="mb-8">
+        <TrophyRequestsPanel requests={trophyRequests ?? []} />
       </div>
 
       <h2 className="text-lg font-medium mb-3">Atletas</h2>
@@ -216,6 +246,11 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
                 teams={categoryTeams}
                 matches={matches}
                 bracketFinished={bracket?.status === 'finished'}
+              />
+              <TrophyAwardPanel
+                categoryName={category.name}
+                teams={categoryTeams}
+                trophiesByTeam={trophiesByTeamId}
               />
             </div>
           )
