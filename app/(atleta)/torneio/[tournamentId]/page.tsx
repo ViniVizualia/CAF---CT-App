@@ -6,6 +6,8 @@ import { CategoryAppealAthleteView } from '@/components/athlete/CategoryAppealAt
 import { ReportCategoryAppealForm } from '@/components/athlete/ReportCategoryAppealForm'
 import { TournamentMessagesBox } from '@/components/athlete/TournamentMessagesBox'
 import { TournamentRegistrationForm } from '@/components/athlete/TournamentRegistrationForm'
+import { TrophyRequestForm } from '@/components/athlete/TrophyRequestForm'
+import { todayInBrazil } from '@/lib/utils/date'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +37,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
   const [
     { data: categories }, { data: teams }, { data: brackets }, { data: appealsRaw },
     { data: myEnrollment }, { data: messages }, { data: myLatestRequest },
+    { data: myTeams }, { data: myTrophies },
   ] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
     supabase
@@ -67,18 +70,17 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from('tournament_teams')
+      .select('category_id, categories(name)')
+      .eq('tournament_id', tournamentId)
+      .or(`athlete_id_1.eq.${athlete.id},athlete_id_2.eq.${athlete.id}`),
+    supabase
+      .from('athlete_trophies')
+      .select('category_id')
+      .eq('tournament_id', tournamentId)
+      .eq('athlete_id', athlete.id),
   ])
-
-  const nonAnonymousProfileIds = [...new Set((appealsRaw ?? []).filter((a: any) => !a.is_anonymous).map((a: any) => a.filed_by_profile_id))]
-  const { data: filerAthletes } = nonAnonymousProfileIds.length
-    ? await supabase.rpc('get_athlete_names_by_profile', { p_profile_ids: nonAnonymousProfileIds })
-    : { data: [] as any[] }
-  const athleteNameByProfile = new Map((filerAthletes ?? []).map((a: any) => [a.profile_id, a.full_name]))
-
-  const appeals = (appealsRaw ?? []).map((a: any) => ({
-    ...a,
-    filed_by_name: !a.is_anonymous ? (athleteNameByProfile.get(a.filed_by_profile_id) ?? null) : null,
-  }))
 
   const allTeams = (teams ?? []).map((t: any) => ({
     id: t.id,
@@ -113,6 +115,12 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
     : null
 
   const hasVenueInfo = tournament.venue_name || tournament.venue_address || tournament.maps_link
+
+  const trophiedCategoryIds = new Set((myTrophies ?? []).map((t: any) => t.category_id))
+  const trophyCategoryOptions = (myTeams ?? [])
+    .filter((t: any) => !trophiedCategoryIds.has(t.category_id))
+    .map((t: any) => ({ id: t.category_id, name: t.categories?.name ?? '—' }))
+  const tournamentEnded = tournament.end_date < todayInBrazil()
 
   return (
     <main className="min-h-screen px-6 py-8 max-w-md mx-auto flex flex-col gap-6">
@@ -182,9 +190,13 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
         </a>
       )}
 
-      <CategoryAppealAthleteView categories={categories ?? []} appeals={appeals} />
+      <CategoryAppealAthleteView categories={categories ?? []} appeals={appealsRaw ?? []} />
 
       {myEnrollment && <ReportCategoryAppealForm tournamentId={tournamentId} />}
+
+      {tournamentEnded && trophyCategoryOptions.length > 0 && (
+        <TrophyRequestForm tournamentId={tournamentId} categoryOptions={trophyCategoryOptions} />
+      )}
 
       {categoriesWithBrackets.length > 0 && (
         <div className="flex flex-col gap-4">
