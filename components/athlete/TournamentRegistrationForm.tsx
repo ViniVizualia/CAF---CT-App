@@ -16,9 +16,10 @@ interface AthleteResult {
 interface Props {
   tournamentId: string
   categoryOptions: string[]
+  pixKey?: string | null
 }
 
-export function TournamentRegistrationForm({ tournamentId, categoryOptions }: Props) {
+export function TournamentRegistrationForm({ tournamentId, categoryOptions, pixKey }: Props) {
   const router = useRouter()
   const [categoryName, setCategoryName] = useState(categoryOptions[0] ?? '')
   const [soloRegistration, setSoloRegistration] = useState(false)
@@ -154,6 +155,13 @@ export function TournamentRegistrationForm({ tournamentId, categoryOptions }: Pr
         <p className="text-xs text-[var(--color-text-muted)] mb-3">
           Sua inscrição fica pendente até o organizador formar sua dupla com outro atleta.
         </p>
+      )}
+
+      {pixKey && (
+        <div className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-2 mb-3">
+          <p className="text-xs text-[var(--color-text-muted)] mb-1">Pagamento da inscrição — Chave PIX</p>
+          <p className="text-sm font-medium break-all">{pixKey}</p>
+        </div>
       )}
 
       <button onClick={handleSubmit} disabled={loading} className="w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white py-2 text-sm font-medium disabled:opacity-60">
