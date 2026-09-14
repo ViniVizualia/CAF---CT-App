@@ -161,6 +161,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
         initialVenueInstagram={tournament.venue_instagram}
         initialCategorySchedule={tournament.category_schedule}
         initialVisibleToAthletes={tournament.visible_to_athletes}
+        initialPixKey={tournament.pix_key}
       />
 
       <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4 mb-4">
