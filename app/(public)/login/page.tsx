@@ -66,12 +66,23 @@ export default function LoginPage() {
       .eq('id', data.user.id)
       .single()
 
+    if (profile?.role === 'super_admin') {
+      setLoading(false)
+      router.push('/dashboard')
+      return
+    }
+
+    const [{ data: organizerRow }, { data: athleteRow }] = await Promise.all([
+      supabase.from('organizers').select('id').eq('profile_id', data.user.id).maybeSingle(),
+      supabase.from('athletes').select('id').eq('profile_id', data.user.id).maybeSingle(),
+    ])
+
     setLoading(false)
 
-    if (profile?.role === 'super_admin') {
-      router.push('/dashboard')
-    } else if (profile?.role === 'organizer') {
+    if (organizerRow) {
       router.push('/meus-torneios')
+    } else if (athleteRow) {
+      router.push('/home')
     } else {
       router.push('/home')
     }
@@ -170,6 +181,9 @@ export default function LoginPage() {
         >
           {accountType === 'atleta' ? 'Criar cadastro CAF' : 'Criar conta de organizador'}
         </Link>
+        <p className="text-xs text-center text-[var(--color-text-muted)]">
+          Já tem cadastro de um tipo e quer o outro também? Use o mesmo e-mail e senha — sua conta passa a ter acesso às duas áreas.
+        </p>
       </div>
 
       <section className="mt-4 pt-6 border-t border-white/10">
