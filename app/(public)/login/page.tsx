@@ -44,6 +44,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [accountType, setAccountType] = useState<'atleta' | 'organizador'>('atleta')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -137,12 +138,39 @@ export default function LoginPage() {
         Esqueci minha senha
       </Link>
 
-      <p className="text-sm text-center text-[var(--color-text-muted)]">
-        Ainda não tem cadastro?{' '}
-        <Link href="/cadastro" className="text-[var(--color-primary)] underline">
-          Criar cadastro CAF
+      <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+        <p className="text-sm text-center text-[var(--color-text-muted)]">Ainda não tem cadastro?</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setAccountType('atleta')}
+            className={`flex-1 rounded-[var(--radius-sm)] py-2 text-sm font-medium border ${
+              accountType === 'atleta'
+                ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                : 'border-white/15 text-[var(--color-text-muted)]'
+            }`}
+          >
+            Sou atleta
+          </button>
+          <button
+            type="button"
+            onClick={() => setAccountType('organizador')}
+            className={`flex-1 rounded-[var(--radius-sm)] py-2 text-sm font-medium border ${
+              accountType === 'organizador'
+                ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                : 'border-white/15 text-[var(--color-text-muted)]'
+            }`}
+          >
+            Sou organizador
+          </button>
+        </div>
+        <Link
+          href={accountType === 'atleta' ? '/cadastro' : '/cadastro-organizador'}
+          className="text-center rounded-[var(--radius-md)] border border-[var(--color-primary)] text-[var(--color-primary)] py-3 font-medium"
+        >
+          {accountType === 'atleta' ? 'Criar cadastro CAF' : 'Criar conta de organizador'}
         </Link>
-      </p>
+      </div>
 
       <section className="mt-4 pt-6 border-t border-white/10">
         <h2 className="text-lg font-semibold mb-3">Perguntas frequentes sobre o CAF</h2>
