@@ -1,6 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const ADMIN_PREFIXES = ['/dashboard', '/atletas', '/organizadores', '/torneios']
+const ORGANIZER_PREFIXES = ['/meus-torneios', '/buscar-atleta']
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -23,7 +26,54 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
+
+  function matchesPrefix(prefixes: string[]) {
+    return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'))
+  }
+
+  const needsAdmin = matchesPrefix(ADMIN_PREFIXES)
+  const needsOrganizer = matchesPrefix(ORGANIZER_PREFIXES)
+
+  if (needsAdmin || needsOrganizer) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const role = profile?.role
+
+    if (needsAdmin) {
+      if (role !== 'super_admin') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/home'
+        return NextResponse.redirect(url)
+      }
+    } else if (needsOrganizer) {
+      let allowed = role === 'super_admin'
+      if (!allowed) {
+        const { data: organizerRow } = await supabase
+          .from('organizers')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle()
+        allowed = !!organizerRow
+      }
+      if (!allowed) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/home'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
 
   return supabaseResponse
 }
