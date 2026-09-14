@@ -28,7 +28,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('id, name, city, state, start_date, end_date, status, prize_info, category_whatsapp_links, category_schedule, logo_path, venue_name, venue_address, maps_link')
+    .select('id, name, city, state, start_date, end_date, status, prize_info, category_whatsapp_links, category_schedule, logo_path, venue_name, venue_address, maps_link, pix_key')
     .eq('id', tournamentId)
     .single()
 
@@ -155,19 +155,25 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
       {showRegistrationSection && (
         myLatestRequest?.status === 'pendente' ? (
-          <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4">
+          <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4 flex flex-col gap-3">
             <p className="text-sm">
               {myLatestRequest.request_type === 'interesse'
                 ? 'Seu interesse foi registrado — a categoria está com vagas preenchidas no momento. O organizador entra em contato se abrir vaga.'
                 : 'Sua solicitação de inscrição foi enviada e está aguardando aprovação do organizador.'}
             </p>
+            {tournament.pix_key && (
+              <div className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-2">
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Não esqueça de pagar a inscrição — Chave PIX</p>
+                <p className="text-sm font-medium break-all">{tournament.pix_key}</p>
+              </div>
+            )}
           </div>
         ) : (
           <>
             {myLatestRequest?.status === 'recusado' && (
               <p className="text-sm text-[var(--color-danger)]">Sua última solicitação foi recusada pelo organizador. Você pode tentar novamente:</p>
             )}
-            <TournamentRegistrationForm tournamentId={tournamentId} categoryOptions={categoryOptions} />
+            <TournamentRegistrationForm tournamentId={tournamentId} categoryOptions={categoryOptions} pixKey={tournament.pix_key} />
           </>
         )
       )}
