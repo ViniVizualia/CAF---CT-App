@@ -25,6 +25,7 @@ export function CreateTournamentForm() {
   const [mapsLink, setMapsLink] = useState('')
   const [eventInstagram, setEventInstagram] = useState('')
   const [venueInstagram, setVenueInstagram] = useState('')
+  const [pixKey, setPixKey] = useState('')
   const [categoryRows, setCategoryRows] = useState<CategoryScheduleRow[]>([{ name: '', date: '', time: '' }])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -68,6 +69,7 @@ export function CreateTournamentForm() {
       maps_link: mapsLink || null,
       event_instagram: eventInstagram || null,
       venue_instagram: venueInstagram || null,
+      pix_key: pixKey || null,
       category_schedule: categorySchedule,
       created_by: user?.id ?? null,
     })
@@ -75,7 +77,7 @@ export function CreateTournamentForm() {
     if (error) return setError(error.message)
     setName(''); setCity(''); setState(''); setStartDate(''); setEndDate('')
     setResponsibleName(''); setVenueName(''); setVenueAddress(''); setMapsLink('')
-    setEventInstagram(''); setVenueInstagram(''); setCategoryRows([{ name: '', date: '', time: '' }])
+    setEventInstagram(''); setVenueInstagram(''); setPixKey(''); setCategoryRows([{ name: '', date: '', time: '' }])
     router.refresh()
   }
 
@@ -142,6 +144,16 @@ export function CreateTournamentForm() {
           value={venueInstagram}
           onChange={(e) => setVenueInstagram(e.target.value)}
           className={`${inputClass} flex-1`}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+        <p className="text-xs text-[var(--color-text-muted)]">Pagamento da inscrição (opcional)</p>
+        <input
+          placeholder="Chave PIX"
+          value={pixKey}
+          onChange={(e) => setPixKey(e.target.value)}
+          className={inputClass}
         />
       </div>
 
