@@ -27,12 +27,13 @@ interface Props {
   initialVenueInstagram: string | null
   initialCategorySchedule: Record<string, { date?: string; time?: string }> | null
   initialVisibleToAthletes: boolean
+  initialPixKey: string | null
 }
 
 export function EditTournamentForm({
   tournamentId, initialName, initialResponsibleName, initialCity, initialState,
   initialStartDate, initialEndDate, initialVenueName, initialVenueAddress, initialMapsLink,
-  initialEventInstagram, initialVenueInstagram, initialCategorySchedule, initialVisibleToAthletes,
+  initialEventInstagram, initialVenueInstagram, initialCategorySchedule, initialVisibleToAthletes, initialPixKey,
 }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -47,6 +48,7 @@ export function EditTournamentForm({
   const [mapsLink, setMapsLink] = useState(initialMapsLink ?? '')
   const [eventInstagram, setEventInstagram] = useState(initialEventInstagram ?? '')
   const [venueInstagram, setVenueInstagram] = useState(initialVenueInstagram ?? '')
+  const [pixKey, setPixKey] = useState(initialPixKey ?? '')
   const [visibleToAthletes, setVisibleToAthletes] = useState(initialVisibleToAthletes)
   const [categoryRows, setCategoryRows] = useState<CategoryScheduleRow[]>(() => {
     const entries = Object.entries(initialCategorySchedule ?? {})
@@ -92,6 +94,7 @@ export function EditTournamentForm({
         maps_link: mapsLink || null,
         event_instagram: eventInstagram || null,
         venue_instagram: venueInstagram || null,
+        pix_key: pixKey || null,
         category_schedule: categorySchedule,
         visible_to_athletes: visibleToAthletes,
       })
@@ -147,6 +150,11 @@ export function EditTournamentForm({
       <div className="flex gap-3 pt-2 border-t border-white/10">
         <input placeholder="Instagram do evento" value={eventInstagram} onChange={(e) => setEventInstagram(e.target.value)} className={`${inputClass} flex-1`} />
         <input placeholder="Instagram da rede/CT" value={venueInstagram} onChange={(e) => setVenueInstagram(e.target.value)} className={`${inputClass} flex-1`} />
+      </div>
+
+      <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+        <p className="text-xs text-[var(--color-text-muted)]">Pagamento da inscrição</p>
+        <input placeholder="Chave PIX" value={pixKey} onChange={(e) => setPixKey(e.target.value)} className={inputClass} />
       </div>
 
       <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
