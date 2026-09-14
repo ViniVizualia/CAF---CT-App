@@ -9,6 +9,7 @@ import { WhatsAppLinksEditor } from '@/components/organizer/WhatsAppLinksEditor'
 import { TournamentMessagesPanel } from '@/components/organizer/TournamentMessagesPanel'
 import { CategoryAppealPanel } from '@/components/organizer/CategoryAppealPanel'
 import { AttendancePanel } from '@/components/organizer/AttendancePanel'
+import { PaymentPanel } from '@/components/organizer/PaymentPanel'
 import { FullCategoriesEditor } from '@/components/organizer/FullCategoriesEditor'
 import { RegistrationRequestsPanel } from '@/components/organizer/RegistrationRequestsPanel'
 import { TournamentTeams } from '@/components/admin/TournamentTeams'
@@ -37,7 +38,7 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
   const [
     { data: athletes }, { data: feedback }, { data: categories }, { data: teams },
     { data: brackets }, { data: attendance }, { data: messages }, { data: registrationRequests },
-    { data: linkedAthletesRaw }, { data: trophies }, { data: trophyRequests },
+    { data: linkedAthletesRaw }, { data: trophies }, { data: trophyRequests }, { data: paymentRows },
   ] = await Promise.all([
     supabase
       .from('tournament_athletes_public')
@@ -63,6 +64,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       .eq('tournament_id', tournamentId),
     supabase.from('athlete_trophies').select('team_id, medal').eq('tournament_id', tournamentId),
     supabase.rpc('get_trophy_requests', { p_tournament_id: tournamentId }),
+    supabase
+      .from('tournament_athletes')
+      .select('athlete_id, payment_confirmed, athletes(full_name, caf_number)')
+      .eq('tournament_id', tournamentId),
   ])
 
   const allTeams = (teams ?? []).map((t: any) => ({ id: t.id, category_id: t.category_id, athlete_1: t.athlete_1, athlete_2: t.athlete_2 }))
@@ -121,6 +126,13 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
         .map((c: any) => ({ categoryName: c.name }))
     : []
 
+  const paymentPanelRows = (paymentRows ?? []).map((r: any) => ({
+    athlete_id: r.athlete_id,
+    full_name: r.athletes?.full_name ?? '—',
+    caf_number: r.athletes?.caf_number ?? null,
+    payment_confirmed: r.payment_confirmed,
+  }))
+
   return (
     <main className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
       <a href="/meus-torneios" className="text-sm text-[var(--color-text-muted)] underline">← Voltar</a>
@@ -168,6 +180,10 @@ export default async function OrganizerTournamentPage({ params }: { params: Prom
       <PrizeEditor tournamentId={tournamentId} initialPrizeInfo={tournament.prize_info} />
       <WhatsAppLinksEditor tournamentId={tournamentId} categoryNames={categoryNames} initialLinks={tournament.category_whatsapp_links} />
       <FullCategoriesEditor tournamentId={tournamentId} categoryNames={categoryNames} initialFull={tournament.full_categories} />
+
+      <div className="mb-8">
+        <PaymentPanel tournamentId={tournamentId} rows={paymentPanelRows} />
+      </div>
 
       <div className="mb-8">
         <RegistrationRequestsPanel requests={registrationRequests ?? []} />
