@@ -7,6 +7,7 @@ import { DeleteTournamentButton } from '@/components/admin/DeleteTournamentButto
 import { BracketManager } from '@/components/bracket/BracketManager'
 import { TrophyAwardPanel } from '@/components/trophy/TrophyAwardPanel'
 import { TrophyRequestsPanel } from '@/components/trophy/TrophyRequestsPanel'
+import { RegistrationRequestsPanel } from '@/components/organizer/RegistrationRequestsPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,6 +33,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     { data: brackets },
     { data: trophies },
     { data: trophyRequests },
+    { data: registrationRequests },
   ] = await Promise.all([
     supabase.from('organizers').select('id, name').eq('status', 'active'),
     supabase.from('tournament_organizers').select('organizer_id, organizers(id, name)').eq('tournament_id', tournamentId),
@@ -45,6 +47,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     supabase.from('brackets').select('id, category_id, status').eq('tournament_id', tournamentId),
     supabase.from('athlete_trophies').select('team_id, medal').eq('tournament_id', tournamentId),
     supabase.rpc('get_trophy_requests', { p_tournament_id: tournamentId }),
+    supabase.rpc('get_tournament_registration_requests', { p_tournament_id: tournamentId }),
   ])
 
   const linkedOrganizerIds = (linkedOrganizers ?? []).map((r: any) => r.organizer_id)
@@ -173,6 +176,10 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         linkedOrganizerIds={linkedOrganizerIds}
         linkedAthleteIds={linkedAthleteIds}
       />
+
+      <div className="mt-10 pt-10 border-t border-white/10">
+        <RegistrationRequestsPanel requests={registrationRequests ?? []} />
+      </div>
 
       <div className="mt-10 pt-10 border-t border-white/10">
         <TournamentTeams
