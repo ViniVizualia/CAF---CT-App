@@ -24,6 +24,11 @@ const statusColor: Record<string, string> = {
   recusado: 'var(--color-danger)',
 }
 
+function formatDateTime(iso: string) {
+  const d = new Date(iso)
+  return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+}
+
 export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[] }) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
@@ -63,7 +68,7 @@ export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[]
               </span>
             </div>
             <p className="text-xs text-[var(--color-text-muted)] mb-2">
-              Categoria: {r.custom_category_name ?? '—'} · {new Date(r.created_at).toLocaleDateString('pt-BR')}
+              Categoria: {r.custom_category_name ?? '—'} · {formatDateTime(r.created_at)}
             </p>
             <div className="flex gap-2">
               <button onClick={() => handleReview(r.id, true)} disabled={loading === r.id} className="text-xs rounded-[var(--radius-sm)] bg-[var(--color-success)] text-white px-3 py-1.5 disabled:opacity-60">
@@ -83,10 +88,11 @@ export function RegistrationRequestsPanel({ requests }: { requests: RequestRow[]
           <div className="flex flex-col gap-2">
             {reviewed.map((r) => (
               <div key={r.id} className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-2 text-xs">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-start mb-1">
                   <span>{names(r)} · {r.custom_category_name ?? '—'}</span>
                   <span style={{ color: statusColor[r.status] }}>{statusLabel[r.status]}</span>
                 </div>
+                <p className="text-[var(--color-text-muted)]">{formatDateTime(r.created_at)}</p>
               </div>
             ))}
           </div>
