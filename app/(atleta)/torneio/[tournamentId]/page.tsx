@@ -36,7 +36,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
   const [
     { data: categories }, { data: teams }, { data: brackets }, { data: appealsRaw },
-    { data: myEnrollment }, { data: messages }, { data: myLatestRequest },
+    { data: myEnrollments }, { data: messages }, { data: myRequests },
     { data: myTeams }, { data: myTrophies },
   ] = await Promise.all([
     supabase.from('categories').select('id, name').order('order_index'),
@@ -52,10 +52,9 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .order('created_at', { ascending: false }),
     supabase
       .from('tournament_athletes')
-      .select('category_at_tournament')
+      .select('category_at_tournament, custom_category_name')
       .eq('tournament_id', tournamentId)
-      .eq('athlete_id', athlete.id)
-      .maybeSingle(),
+      .eq('athlete_id', athlete.id),
     supabase
       .from('tournament_messages')
       .select('id, message, created_at, read_at')
@@ -64,12 +63,10 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
       .order('created_at', { ascending: false }),
     supabase
       .from('tournament_registration_requests')
-      .select('id, status, request_type')
+      .select('id, status, request_type, custom_category_name, created_at')
       .eq('tournament_id', tournamentId)
       .or(`athlete_id_1.eq.${athlete.id},athlete_id_2.eq.${athlete.id}`)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: false }),
     supabase
       .from('tournament_teams')
       .select('category_id, categories(name)')
@@ -97,18 +94,41 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
     (brackets ?? []).some((b: any) => b.category_id === c.id)
   )
 
-  const myCategoryName = (categories ?? []).find((c: any) => c.id === myEnrollment?.category_at_tournament)?.name
-  const whatsappLinks = (tournament.category_whatsapp_links ?? {}) as Record<string, string>
-  const myWhatsappLink = myCategoryName ? whatsappLinks[myCategoryName] : null
-
-  const showRegistrationSection = !myEnrollment && !['finished', 'canceled'].includes(tournament.status)
-
   const categorySchedule = (tournament.category_schedule ?? {}) as Record<string, { date?: string; time?: string }>
-  const categoryOptions = Object.keys(categorySchedule).sort((a, b) => {
+  const allCategoryNames = Object.keys(categorySchedule).sort((a, b) => {
     const keyA = `${categorySchedule[a]?.date ?? ''}${categorySchedule[a]?.time ?? ''}`
     const keyB = `${categorySchedule[b]?.date ?? ''}${categorySchedule[b]?.time ?? ''}`
     return keyA.localeCompare(keyB)
   })
+
+  const whatsappLinks = (tournament.category_whatsapp_links ?? {}) as Record<string, string>
+
+  const enrolledCategoryNames = new Set(
+    (myEnrollments ?? []).map((e: any) => e.custom_category_name).filter(Boolean)
+  )
+
+  const latestRequestByCategory = new Map<string, { status: string; request_type: string }>()
+  for (const r of myRequests ?? []) {
+    if (r.custom_category_name && !latestRequestByCategory.has(r.custom_category_name)) {
+      latestRequestByCategory.set(r.custom_category_name, { status: r.status, request_type: r.request_type })
+    }
+  }
+
+  const pendingCategories = allCategoryNames
+    .filter((name) => latestRequestByCategory.get(name)?.status === 'pendente')
+    .map((name) => ({ name, requestType: latestRequestByCategory.get(name)!.request_type }))
+
+  const rejectedCategories = allCategoryNames.filter(
+    (name) => !enrolledCategoryNames.has(name) && latestRequestByCategory.get(name)?.status === 'recusado'
+  )
+
+  const availableCategoryOptions = allCategoryNames.filter((name) => {
+    if (enrolledCategoryNames.has(name)) return false
+    if (latestRequestByCategory.get(name)?.status === 'pendente') return false
+    return true
+  })
+
+  const tournamentActive = !['finished', 'canceled'].includes(tournament.status)
 
   const logoUrl = tournament.logo_path
     ? supabase.storage.from('tournament-logos').getPublicUrl(tournament.logo_path).data.publicUrl
@@ -153,29 +173,51 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
 
       <TournamentMessagesBox messages={messages ?? []} />
 
-      {showRegistrationSection && (
-        myLatestRequest?.status === 'pendente' ? (
-          <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4 flex flex-col gap-3">
-            <p className="text-sm">
-              {myLatestRequest.request_type === 'interesse'
-                ? 'Seu interesse foi registrado — a categoria está com vagas preenchidas no momento. O organizador entra em contato se abrir vaga.'
-                : 'Sua solicitação de inscrição foi enviada e está aguardando aprovação do organizador.'}
-            </p>
-            {tournament.pix_key && (
-              <div className="rounded-[var(--radius-sm)] bg-[var(--color-bg)] border border-white/10 px-3 py-2">
-                <p className="text-xs text-[var(--color-text-muted)] mb-1">Não esqueça de pagar a inscrição — Chave PIX</p>
-                <p className="text-sm font-medium break-all">{tournament.pix_key}</p>
+      {(enrolledCategoryNames.size > 0 || pendingCategories.length > 0 || rejectedCategories.length > 0) && (
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-surface)] border border-white/10 p-4 flex flex-col gap-3">
+          <p className="text-sm font-medium">Minhas inscrições neste torneio</p>
+
+          {[...enrolledCategoryNames].map((name) => (
+            <div key={`enrolled-${name}`} className="flex justify-between items-center text-sm">
+              <span>{name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--color-success)] font-medium">Inscrito</span>
+                {whatsappLinks[name] && (
+                  <a href={whatsappLinks[name]} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-primary)] underline">
+                    Grupo
+                  </a>
+                )}
               </div>
-            )}
-          </div>
-        ) : (
-          <>
-            {myLatestRequest?.status === 'recusado' && (
-              <p className="text-sm text-[var(--color-danger)]">Sua última solicitação foi recusada pelo organizador. Você pode tentar novamente:</p>
-            )}
-            <TournamentRegistrationForm tournamentId={tournamentId} categoryOptions={categoryOptions} pixKey={tournament.pix_key} />
-          </>
-        )
+            </div>
+          ))}
+
+          {pendingCategories.map(({ name, requestType }) => (
+            <div key={`pending-${name}`} className="flex flex-col gap-1 text-sm border-t border-white/10 pt-2">
+              <div className="flex justify-between items-center">
+                <span>{name}</span>
+                <span className="text-xs text-[var(--color-accent)] font-medium">
+                  {requestType === 'interesse' ? 'Interesse registrado' : 'Aguardando aprovação'}
+                </span>
+              </div>
+              {requestType !== 'interesse' && tournament.pix_key && (
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  Chave PIX pra pagar: <span className="font-medium text-[var(--color-text-primary)]">{tournament.pix_key}</span>
+                </p>
+              )}
+            </div>
+          ))}
+
+          {rejectedCategories.map((name) => (
+            <div key={`rejected-${name}`} className="flex justify-between items-center text-sm border-t border-white/10 pt-2">
+              <span>{name}</span>
+              <span className="text-xs text-[var(--color-danger)] font-medium">Recusado — pode tentar de novo</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tournamentActive && availableCategoryOptions.length > 0 && (
+        <TournamentRegistrationForm tournamentId={tournamentId} categoryOptions={availableCategoryOptions} pixKey={tournament.pix_key} />
       )}
 
       {tournament.prize_info && (
@@ -185,20 +227,9 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
         </div>
       )}
 
-      {myWhatsappLink && (
-        <a
-          href={myWhatsappLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-[var(--radius-md)] bg-[var(--color-success)] text-white px-4 py-3 text-sm font-medium text-center"
-        >
-          Entrar no grupo do WhatsApp da minha categoria
-        </a>
-      )}
-
       <CategoryAppealAthleteView categories={categories ?? []} appeals={appealsRaw ?? []} />
 
-      {myEnrollment && <ReportCategoryAppealForm tournamentId={tournamentId} />}
+      {enrolledCategoryNames.size > 0 && <ReportCategoryAppealForm tournamentId={tournamentId} />}
 
       {tournamentEnded && trophyCategoryOptions.length > 0 && (
         <TrophyRequestForm tournamentId={tournamentId} categoryOptions={trophyCategoryOptions} />
