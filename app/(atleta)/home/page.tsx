@@ -91,9 +91,15 @@ export default async function HomePage() {
     unreadByTournament.set(row.tournament_id, (unreadByTournament.get(row.tournament_id) ?? 0) + 1)
   }
 
-  const history = (historyRows ?? [])
-    .map((r: any) => r.tournaments)
-    .filter(Boolean)
+  // Um atleta pode ter mais de uma categoria no mesmo torneio agora — evita listar o
+  // mesmo torneio duas vezes no histórico.
+  const historyByTournament = new Map<string, any>()
+  for (const r of historyRows ?? []) {
+    const t = (r as any).tournaments
+    if (t && !historyByTournament.has(t.id)) historyByTournament.set(t.id, t)
+  }
+
+  const history = [...historyByTournament.values()]
     .map((t: any) => ({
       ...t,
       presence_status: presenceByTournament.get(t.id) ?? null,
