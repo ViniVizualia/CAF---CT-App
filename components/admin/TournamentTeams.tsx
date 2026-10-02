@@ -9,8 +9,8 @@ interface Category { id: number; name: string }
 interface Team {
   id: string
   category_id: number
-  athlete_1: { id: string; full_name: string; caf_number: number | null }
-  athlete_2: { id: string; full_name: string; caf_number: number | null }
+  athlete_1: { id: string; full_name: string; caf_number: number | null } | null
+  athlete_2: { id: string; full_name: string; caf_number: number | null } | null
 }
 
 interface Props {
@@ -30,7 +30,7 @@ export function TournamentTeams({ tournamentId, categories, linkedAthletes, team
 
   const pairedAthleteIds = teams
     .filter((t) => t.category_id === selectedCategory)
-    .flatMap((t) => [t.athlete_1.id, t.athlete_2.id])
+    .flatMap((t) => [t.athlete_1?.id, t.athlete_2?.id].filter(Boolean) as string[])
 
   const availableAthletes = linkedAthletes.filter(
     (a) => a.category_at_tournament === selectedCategory && !pairedAthleteIds.includes(a.id)
@@ -81,7 +81,9 @@ export function TournamentTeams({ tournamentId, categories, linkedAthletes, team
       <div className="flex flex-col gap-2 mb-4">
         {teamsInCategory.map((t) => (
           <div key={t.id} className="flex justify-between items-center rounded-[var(--radius-sm)] bg-[var(--color-surface)] border border-white/10 px-4 py-2 text-sm">
-            <span>{t.athlete_1.full_name} / {t.athlete_2.full_name}</span>
+            <span>
+              {t.athlete_1?.full_name ?? '⚠️ atleta indisponível'} / {t.athlete_2?.full_name ?? '⚠️ atleta indisponível'}
+            </span>
             <button onClick={() => removeTeam(t.id)} disabled={loading} className="text-xs text-[var(--color-danger)] disabled:opacity-60">
               Remover
             </button>
