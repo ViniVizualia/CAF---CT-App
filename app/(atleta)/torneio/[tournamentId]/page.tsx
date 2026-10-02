@@ -82,7 +82,7 @@ export default async function AthleteTournamentPage({ params }: { params: Promis
   const allTeams = (teams ?? []).map((t: any) => ({
     id: t.id,
     category_id: t.category_id,
-    label: `${t.athlete_1.full_name} / ${t.athlete_2.full_name}`,
+    label: `${t.athlete_1?.full_name ?? '—'} / ${t.athlete_2?.full_name ?? '—'}`,
   }))
 
   const bracketIds = (brackets ?? []).map((b: any) => b.id)
