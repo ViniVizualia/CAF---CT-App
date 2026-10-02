@@ -206,7 +206,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         {categoriesWithTeams.map((category: any) => {
           const categoryTeams = allTeams
             .filter((t) => t.category_id === category.id)
-            .map((t) => ({ id: t.id, label: `${t.athlete_1.full_name} / ${t.athlete_2.full_name}` }))
+            .map((t) => ({ id: t.id, label: `${t.athlete_1?.full_name ?? '—'} / ${t.athlete_2?.full_name ?? '—'}` }))
           const bracket = (brackets ?? []).find((b: any) => b.category_id === category.id) ?? null
           const matches = (bracketMatches ?? []).filter((m: any) => m.bracket_id === bracket?.id)
           return (
