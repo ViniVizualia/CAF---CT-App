@@ -8,18 +8,18 @@ on:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     steps:
-      - name: Diagnóstico seguro (não mostra os valores, só o formato)
-        run: |
-          echo "Tamanho da URL: ${#SUPABASE_URL} caracteres"
-          echo "Começa com https://: $(echo "$SUPABASE_URL" | grep -c '^https://')"
-          echo "Tamanho da chave: ${#SUPABASE_ANON_KEY} caracteres"
-
       - name: Ping Supabase database
+        env:
+          RAW_URL: ${{ secrets.SUPABASE_URL }}
+          RAW_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          SUPABASE_URL="$(printf '%s' "$RAW_URL" | tr -d '[:space:]')"
+          SUPABASE_ANON_KEY="$(printf '%s' "$RAW_KEY" | tr -d '[:space:]')"
+
+          echo "Tamanho da URL (limpa): ${#SUPABASE_URL} caracteres"
+          echo "Tamanho da chave (limpa): ${#SUPABASE_ANON_KEY} caracteres"
+
           curl -s -o /dev/null -w "Status: %{http_code}\n" \
             "${SUPABASE_URL}/rest/v1/categories?select=id&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
